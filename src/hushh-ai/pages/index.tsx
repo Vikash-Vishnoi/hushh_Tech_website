@@ -5,13 +5,14 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Flex, Text, Input, IconButton, VStack, HStack, Avatar, Spinner, useToast } from '@chakra-ui/react';
+import { Box, Flex, Text, Input, IconButton, VStack, HStack, Avatar, Spinner, useToast, useDisclosure, Menu, MenuButton, MenuList, MenuItem, Divider } from '@chakra-ui/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { THEME, BRANDING, LIMITS } from '../core/constants';
 import type { HushhChat, HushhMessage, MediaLimits, ChatState } from '../core/types';
 import * as service from '../services/hushhAIService';
 import config from '../../resources/config/config';
 import { trackProductUsage, PRODUCTS } from '../../services/productUsage/trackProductUsage';
+import DeleteAccountModal from '../../components/DeleteAccountModal';
 
 const MotionBox = motion(Box);
 
@@ -41,6 +42,10 @@ export default function HushhAIPage() {
   });
   const [inputValue, setInputValue] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [userProfile, setUserProfile] = useState<{ email: string; displayName: string | null; avatarUrl: string | null } | null>(null);
+  
+  // Delete account modal
+  const { isOpen: isDeleteModalOpen, onOpen: onOpenDeleteModal, onClose: onCloseDeleteModal } = useDisclosure();
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -91,12 +96,14 @@ export default function HushhAIPage() {
       // Track product usage for analytics
       trackProductUsage(PRODUCTS.HUSHH_AI).catch(console.error);
     }
-    const [chatList, limits] = await Promise.all([
+    const [chatList, limits, profile] = await Promise.all([
       service.getChats(),
       service.getMediaLimits(),
+      service.getUserProfile(),
     ]);
     setChats(chatList);
     setMediaLimits(limits);
+    setUserProfile(profile);
   };
 
   const loadChat = async (chatId: string) => {
@@ -282,6 +289,24 @@ export default function HushhAIPage() {
     }
   };
 
+  const handleLogout = async () => {
+    const success = await service.signOut();
+    if (success) {
+      navigate('/hushh-ai/login');
+    } else {
+      toast({
+        title: 'Logout failed',
+        status: 'error',
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleAccountDeleted = () => {
+    onCloseDeleteModal();
+    navigate('/hushh-ai/login');
+  };
+
   // ============================================
   // Render
   // ============================================
@@ -417,6 +442,72 @@ export default function HushhAIPage() {
                   </Box>
                 </Box>
               )}
+
+              {/* Profile Section */}
+              <Divider borderColor={THEME.colors.border} />
+              <Menu placement="top-start">
+                <MenuButton
+                  as={Box}
+                  p={3}
+                  borderRadius={THEME.borderRadius.sm}
+                  _hover={{ bg: THEME.colors.sidebarHover }}
+                  cursor="pointer"
+                  transition={THEME.transitions.fast}
+                >
+                  <HStack spacing={3}>
+                    <Avatar 
+                      size="sm" 
+                      name={userProfile?.displayName || userProfile?.email || 'User'}
+                      src={userProfile?.avatarUrl || undefined}
+                      bg={THEME.colors.accent}
+                      color="white"
+                    />
+                    <VStack align="start" spacing={0} flex={1}>
+                      <Text 
+                        fontSize={THEME.fontSizes.sm} 
+                        fontWeight={THEME.fontWeights.medium}
+                        color={THEME.colors.textPrimary}
+                        noOfLines={1}
+                      >
+                        {userProfile?.displayName || 'User'}
+                      </Text>
+                      <Text 
+                        fontSize={THEME.fontSizes.xs} 
+                        color={THEME.colors.textSecondary}
+                        noOfLines={1}
+                      >
+                        {userProfile?.email || ''}
+                      </Text>
+                    </VStack>
+                    <ProfileMenuIcon />
+                  </HStack>
+                </MenuButton>
+                <MenuList 
+                  bg={THEME.colors.surface} 
+                  borderColor={THEME.colors.border}
+                  boxShadow={THEME.shadows.md}
+                  py={2}
+                >
+                  <MenuItem
+                    icon={<LogoutIcon />}
+                    onClick={handleLogout}
+                    _hover={{ bg: THEME.colors.sidebarHover }}
+                    fontSize={THEME.fontSizes.sm}
+                    color={THEME.colors.textPrimary}
+                  >
+                    Log Out
+                  </MenuItem>
+                  <MenuItem
+                    icon={<DeleteIcon />}
+                    onClick={onOpenDeleteModal}
+                    _hover={{ bg: '#FEE2E2' }}
+                    fontSize={THEME.fontSizes.sm}
+                    color="#DC2626"
+                  >
+                    Delete Account
+                  </MenuItem>
+                </MenuList>
+              </Menu>
             </VStack>
           </MotionBox>
         )}
@@ -596,6 +687,13 @@ export default function HushhAIPage() {
           )}
         </Box>
       </Flex>
+
+      {/* Delete Account Modal */}
+      <DeleteAccountModal
+        isOpen={isDeleteModalOpen}
+        onClose={onCloseDeleteModal}
+        onAccountDeleted={handleAccountDeleted}
+      />
     </Flex>
   );
 }
@@ -697,5 +795,29 @@ const CloseIcon = () => (
   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <line x1="18" y1="6" x2="6" y2="18" />
     <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+);
+
+const ProfileMenuIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <circle cx="12" cy="12" r="1" />
+    <circle cx="12" cy="5" r="1" />
+    <circle cx="12" cy="19" r="1" />
+  </svg>
+);
+
+const LogoutIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+    <polyline points="16 17 21 12 16 7" />
+    <line x1="21" y1="12" x2="9" y2="12" />
+  </svg>
+);
+
+const DeleteIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+    <line x1="10" y1="11" x2="10" y2="17" />
+    <line x1="14" y1="11" x2="14" y2="17" />
   </svg>
 );

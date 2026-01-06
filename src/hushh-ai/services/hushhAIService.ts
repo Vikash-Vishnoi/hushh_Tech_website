@@ -369,6 +369,32 @@ export function onAuthChange(callback: (isLoggedIn: boolean) => void): () => voi
   return () => subscription.unsubscribe();
 }
 
+/**
+ * Sign out current user
+ */
+export async function signOut(): Promise<boolean> {
+  if (!supabase) return false;
+  
+  const { error } = await supabase.auth.signOut();
+  return !error;
+}
+
+/**
+ * Get user email and avatar
+ */
+export async function getUserProfile(): Promise<{ email: string; displayName: string | null; avatarUrl: string | null } | null> {
+  if (!supabase) return null;
+  
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+  
+  return {
+    email: user.email || '',
+    displayName: user.user_metadata?.full_name || user.user_metadata?.name || null,
+    avatarUrl: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
+  };
+}
+
 // ============================================
 // Mappers
 // ============================================
