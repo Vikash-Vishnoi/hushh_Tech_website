@@ -4,9 +4,10 @@ import { COACHES } from './constants';
 import CoachCard from './components/CoachCard';
 import LiveSession from './components/LiveSession';
 import EmailLoginModal from './components/EmailLoginModal';
+import ChatNode from './components/ChatNode';
 import { useEmailAuth } from './hooks/useEmailAuth';
 
-type FilterType = 'all' | 'biological' | 'automation' | 'dating' | 'career';
+type FilterType = 'all' | 'biological' | 'automation' | 'dating' | 'career' | 'chatnode';
 
 const App: React.FC = () => {
   const [selectedCoach, setSelectedCoach] = useState<Coach | null>(null);
@@ -55,7 +56,12 @@ const App: React.FC = () => {
         <div className="absolute inset-0 portal-bg opacity-40"></div>
       </div>
 
-      {!selectedCoach ? (
+      {activeFilter === 'chatnode' ? (
+        <ChatNode 
+          isOpen={true} 
+          onClose={() => setActiveFilter('all')} 
+        />
+      ) : !selectedCoach ? (
         <div className="relative z-10 max-w-[1600px] mx-auto px-6 py-16 md:py-32">
           {/* User Status Bar */}
           <div className="fixed top-6 right-6 z-50 flex items-center gap-4">
@@ -105,6 +111,7 @@ const App: React.FC = () => {
              <div className="p-2 rounded-[32px] glass border border-white/10 flex flex-wrap justify-center items-center gap-2 bg-black/40 shadow-3xl">
                 {[
                     { id: 'all', label: 'All Sovereigns', icon: 'fa-globe' },
+                    { id: 'chatnode', label: 'Chat Node', icon: 'fa-comments', highlight: true },
                     { id: 'career', label: 'Resume Node', icon: 'fa-file-alt' },
                     { id: 'biological', label: 'Biological Node', icon: 'fa-dna' },
                     { id: 'automation', label: 'Automation Node', icon: 'fa-robot' },
@@ -117,7 +124,9 @@ const App: React.FC = () => {
                             px-6 py-3 md:px-10 md:py-4 rounded-[24px] flex items-center gap-3 transition-all duration-500
                             ${activeFilter === filter.id 
                                 ? 'bg-white text-black shadow-[0_0_50px_rgba(255,255,255,0.2)] scale-105' 
-                                : 'text-white/30 hover:text-white/60 hover:bg-white/5'
+                                : filter.highlight 
+                                    ? 'text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 border border-purple-500/30'
+                                    : 'text-white/30 hover:text-white/60 hover:bg-white/5'
                             }
                         `}
                     >
