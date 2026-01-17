@@ -10,7 +10,7 @@
  * Created: Jan 17, 2026
  */
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://qfmgkdxedvaapghegtfr.supabase.co';
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://ibsisfnjxeowvdtvgzff.supabase.co';
 const RESUME_ANALYSIS_ENDPOINT = `${SUPABASE_URL}/functions/v1/resume-analysis-agent`;
 
 export interface ResumeAnalysisScores {
