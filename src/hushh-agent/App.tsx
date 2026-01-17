@@ -1,69 +1,25 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { ChakraProvider, extendTheme } from '@chakra-ui/react';
-import { Coach } from './types';
-import { COACHES } from './constants';
-import CoachCard from './components/CoachCard';
-import LiveSession from './components/LiveSession';
+/**
+ * Hushh Agent App - Main Entry Point
+ * 
+ * This component handles authentication and renders the AgentRouter
+ * for URL-based navigation between agent views.
+ * 
+ * Routes (handled by AgentRouter):
+ * - /hushh-agent                    → Home (agent selection grid)
+ * - /hushh-agent/chat               → ChatNode
+ * - /hushh-agent/career             → Resume Node (vision session)
+ * - /hushh-agent/career/:coachId    → Career session with specific coach
+ * - /hushh-agent/session/:coachId   → Live session with any agent
+ * - /hushh-agent/node/:category     → Category filter view
+ */
+
+import React from 'react';
 import EmailLoginModal from './components/EmailLoginModal';
-import ChatNode from './components/ChatNode';
-import AgentHeader from './components/AgentHeader';
-import { ResumeNodeVisionSession } from './components/ResumeNode';
+import { AgentRouter } from './routes';
 import { useEmailAuth } from './hooks/useEmailAuth';
 
-// Chakra UI theme for agent module
-const agentTheme = extendTheme({
-  config: {
-    initialColorMode: 'dark',
-    useSystemColorMode: false,
-  },
-});
-
-type FilterType = 'all' | 'biological' | 'automation' | 'dating' | 'career' | 'chatnode';
-
-// Storage keys for persistence
-const STORAGE_KEYS = {
-  ACTIVE_FILTER: 'hushh_agent_active_filter',
-  SELECTED_COACH: 'hushh_agent_selected_coach',
-};
-
 const App: React.FC = () => {
-  // Selected coach state - NOT persisted to localStorage
-  // On refresh, user should go back to home screen
-  const [selectedCoach, setSelectedCoach] = useState<Coach | null>(null);
-  
-  const [activeFilter, setActiveFilter] = useState<FilterType>(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEYS.ACTIVE_FILTER);
-      if (stored) {
-        return JSON.parse(stored) as FilterType;
-      }
-    } catch { /* ignore */ }
-    return 'all';
-  });
-  
-  const [showLoginModal, setShowLoginModal] = useState(false);
-
-  // Persist activeFilter to localStorage - but NOT special nodes (chatnode)
-  // This prevents the issue where refreshing goes directly to chat instead of home
-  useEffect(() => {
-    if (activeFilter === 'chatnode') {
-      // Don't persist chatnode - always start at home on refresh
-      localStorage.removeItem(STORAGE_KEYS.ACTIVE_FILTER);
-    } else {
-      localStorage.setItem(STORAGE_KEYS.ACTIVE_FILTER, JSON.stringify(activeFilter));
-    }
-  }, [activeFilter]);
-
-  // Handler for navigating home - clears all state
-  const handleHomeClick = useCallback(() => {
-    setActiveFilter('all');
-    setSelectedCoach(null);
-    localStorage.removeItem(STORAGE_KEYS.ACTIVE_FILTER);
-    localStorage.removeItem(STORAGE_KEYS.SELECTED_COACH);
-  }, []);
-
-  
-  // Email Auth Hook - destructure ALL functions to pass to modal
+  // Email Auth Hook - handles authentication state
   const { 
     isAuthenticated, 
     isLoading, 
@@ -76,13 +32,8 @@ const App: React.FC = () => {
     error,
     otpSent,
     clearError,
-    refreshSession, // ADD: used to force state sync after login
+    refreshSession,
   } = useEmailAuth();
-
-  const filteredCoaches = useMemo(() => {
-    if (activeFilter === 'all') return COACHES;
-    return COACHES.filter(coach => coach.category === activeFilter);
-  }, [activeFilter]);
 
   // Show loading state while checking auth
   if (isLoading) {
@@ -103,9 +54,7 @@ const App: React.FC = () => {
         <EmailLoginModal 
           isOpen={true} 
           onClose={() => {}}
-          // Force refresh session when login succeeds to sync React state
           onLoginSuccess={refreshSession}
-          // Pass auth functions from App's hook instance to modal
           sendOTP={sendOTP}
           verifyOTP={verifyOTP}
           isSendingOTP={isSendingOTP}
@@ -118,6 +67,7 @@ const App: React.FC = () => {
     );
   }
 
+  // Authenticated - render router with immersive background
   return (
     <div className="min-h-screen bg-[#020202] text-white selection:bg-rose-500/30 overflow-x-hidden">
       {/* Immersive Neural Background */}
@@ -128,168 +78,13 @@ const App: React.FC = () => {
         <div className="absolute inset-0 portal-bg opacity-40"></div>
       </div>
 
-      {activeFilter === 'chatnode' ? (
-        <ChakraProvider theme={agentTheme}>
-          <AgentHeader
-            currentNode="chatnode"
-            userEmail={user?.email}
-            onHomeClick={handleHomeClick}
-            onSignOut={signOut}
-          />
-          <ChatNode 
-            isOpen={true} 
-            onClose={handleHomeClick}
-            showHeader={false}
-          />
-        </ChakraProvider>
-      ) : activeFilter === 'career' && !selectedCoach ? (
-        // Resume Node - Phase 0: Neural Vision Session
-        <ResumeNodeVisionSession 
-          onClose={handleHomeClick}
-          onProceedToLiveSession={(coach) => {
-            setSelectedCoach(coach);
-          }}
-          userEmail={user?.email}
-          userId={user?.id}
-        />
-      ) : !selectedCoach ? (
-        <div className="relative z-10 max-w-[1600px] mx-auto px-6 py-16 md:py-32">
-          {/* User Status Bar */}
-          <div className="fixed top-6 right-6 z-50 flex items-center gap-4">
-            <div className="glass rounded-full px-6 py-3 border border-white/10 flex items-center gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                <span className="text-[10px] uppercase tracking-[0.3em] text-white/50 font-black">
-                  {user?.email || 'Connected'}
-                </span>
-              </div>
-              <div className="w-px h-4 bg-white/10"></div>
-              <button
-                onClick={signOut}
-                className="text-[10px] uppercase tracking-[0.2em] text-white/30 hover:text-red-400 transition-colors font-black"
-              >
-                Disconnect
-              </button>
-            </div>
-          </div>
-
-          {/* Main Header */}
-          <header className="mb-20 md:mb-32 text-center animate-in fade-in slide-in-from-top-4 duration-1000">
-            <div className="flex flex-col items-center gap-6 mb-12">
-                <div className="inline-flex items-center gap-3 px-6 py-2 rounded-full glass border border-white/5 shadow-2xl">
-                   <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></div>
-                   <span className="text-[10px] md:text-[11px] uppercase tracking-[0.5em] text-white/50 font-black">hushh Neural Architecture • Sovereign Collective v4.5</span>
-                </div>
-            </div>
-
-            <h1 className="font-serif text-5xl sm:text-7xl md:text-[11rem] font-bold mb-10 tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white via-white/80 to-white/10 leading-none">
-              hushh Sovereign
-            </h1>
-
-            <p className="max-w-4xl mx-auto text-lg md:text-2xl text-white/30 font-light leading-relaxed px-4 md:px-0">
-              Navigate the hierarchy of performance. Our agents facilitate 
-              <span className="text-white/70 font-medium mx-2 italic">absolute resonance</span> 
-              through the hushh Uplink. Rebuild your 
-              <span className="text-blue-400 font-semibold mx-1">career trajectory</span>, 
-              <span className="text-white/60 font-semibold mx-1">biological profile</span>, 
-              <span className="text-cyan-400 font-semibold mx-1">automation workflows</span>, or 
-              <span className="text-rose-500/80 font-bold mx-1 uppercase tracking-wider">sovereign intimacy</span>.
-            </p>
-          </header>
-
-          {/* Neural Filter Node */}
-          <div className="mb-16 md:mb-24 flex justify-center animate-in fade-in zoom-in-95 duration-700 delay-300">
-             <div className="p-2 rounded-[32px] glass border border-white/10 flex flex-wrap justify-center items-center gap-2 bg-black/40 shadow-3xl">
-                {[
-                    { id: 'all', label: 'All Sovereigns', icon: 'fa-globe' },
-                    { id: 'chatnode', label: 'Chat Node', icon: 'fa-comments', highlight: true },
-                    { id: 'career', label: 'Resume Node', icon: 'fa-file-alt' },
-                    { id: 'biological', label: 'Biological Node', icon: 'fa-dna' },
-                    { id: 'automation', label: 'Automation Node', icon: 'fa-robot' },
-                    { id: 'dating', label: 'Intimacy Node', icon: 'fa-heart' }
-                ].map((filter) => (
-                    <button
-                        key={filter.id}
-                        onClick={() => setActiveFilter(filter.id as FilterType)}
-                        className={`
-                            px-6 py-3 md:px-10 md:py-4 rounded-[24px] flex items-center gap-3 transition-all duration-500
-                            ${activeFilter === filter.id 
-                                ? 'bg-white text-black shadow-[0_0_50px_rgba(255,255,255,0.2)] scale-105' 
-                                : filter.highlight 
-                                    ? 'text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 border border-purple-500/30'
-                                    : 'text-white/30 hover:text-white/60 hover:bg-white/5'
-                            }
-                        `}
-                    >
-                        <i className={`fas ${filter.icon} text-xs md:text-sm`}></i>
-                        <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.3em]">{filter.label}</span>
-                    </button>
-                ))}
-             </div>
-          </div>
-
-          {/* Agent Matrix */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 md:gap-10">
-            {filteredCoaches.map((coach, index) => (
-              <div 
-                key={coach.id} 
-                className="card-3d animate-in fade-in slide-in-from-bottom-8 duration-700"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <CoachCard 
-                  coach={coach} 
-                  onSelect={setSelectedCoach} 
-                />
-              </div>
-            ))}
-          </div>
-
-          <footer className="mt-32 md:mt-48 pt-16 md:pt-20 border-t border-white/5 flex flex-col items-center gap-10">
-            <div className="flex flex-wrap justify-center gap-10 md:gap-16 text-[10px] md:text-[12px] uppercase tracking-[0.4em] text-white/20 font-black px-6 text-center">
-                <div className="flex items-center gap-3">
-                   <div className="w-1 h-1 rounded-full bg-blue-500"></div>
-                   <span>Career Architect</span>
-                </div>
-                <div className="flex items-center gap-3">
-                   <div className="w-1 h-1 rounded-full bg-purple-500"></div>
-                   <span>Bio-Resonance</span>
-                </div>
-                <div className="flex items-center gap-3">
-                   <div className="w-1 h-1 rounded-full bg-cyan-400"></div>
-                   <span>Automation</span>
-                </div>
-                <div className="flex items-center gap-3">
-                   <div className="w-1 h-1 rounded-full bg-rose-500"></div>
-                   <span>Sovereign Intimacy</span>
-                </div>
-            </div>
-            
-            <div className="text-center space-y-4 px-6">
-                <p className="text-white/10 text-[9px] md:text-[10px] uppercase tracking-[0.4em] font-medium max-w-lg mx-auto leading-relaxed">
-                  hushh Sovereign is an agentic neural matrix designed for absolute human optimization.
-                </p>
-                <p className="text-white/5 text-[8px] md:text-[9px] uppercase tracking-widest">
-                  &copy; 2025 hushh Architecture • The Narrative Ecosystem • Total sync active
-                </p>
-            </div>
-          </footer>
-        </div>
-      ) : (
-        <ChakraProvider theme={agentTheme}>
-          <AgentHeader
-            currentNode={selectedCoach.category}
-            userEmail={user?.email}
-            onHomeClick={handleHomeClick}
-            onSignOut={signOut}
-            coachName={selectedCoach.name}
-          />
-          <LiveSession 
-            coach={selectedCoach} 
-            onClose={handleHomeClick}
-            showHeader={false}
-          />
-        </ChakraProvider>
-      )}
+      {/* Router handles all navigation */}
+      <AgentRouter
+        userEmail={user?.email}
+        userId={user?.id}
+        onSignOut={signOut}
+        isAuthenticated={isAuthenticated}
+      />
     </div>
   );
 };

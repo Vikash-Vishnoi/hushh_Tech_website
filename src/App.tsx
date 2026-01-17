@@ -434,7 +434,8 @@ function App() {
             <Route path='/hushh-ai/login' element={<HushhAILoginPage />} />
             <Route path='/hushh-ai/signup' element={<HushhAISignupPage />} />
             {/* Hushh Agent - AI Voice/Video Coaching Platform */}
-            <Route path='/hushh-agent' element={<HushhAgentApp />} />
+            {/* Uses wildcard to enable nested routing within hushh-agent module */}
+            <Route path='/hushh-agent/*' element={<HushhAgentApp />} />
           </Routes>
         </ContentWrapper>
         {/* Footer - Only show for non-Hushh AI routes */}

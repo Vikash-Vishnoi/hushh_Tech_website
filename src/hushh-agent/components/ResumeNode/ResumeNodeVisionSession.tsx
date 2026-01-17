@@ -789,15 +789,24 @@ Ask them about their current role and career goals instead.`
   // Render vision session (main view)
   return (
     <div className="fixed inset-0 z-50 bg-[#010101] flex flex-col overflow-hidden">
-      {/* Header */}
+      {/* Header - with prominent Home navigation */}
       <div className="flex items-center justify-between p-4 md:p-6 border-b border-white/5">
         <div className="flex items-center gap-4">
+          {/* Home Button - Primary navigation */}
           <button
             onClick={() => { stopSession(); onClose(); }}
-            className="w-10 h-10 rounded-full glass border border-white/10 flex items-center justify-center hover:bg-white/5 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-full glass border border-white/10 hover:bg-white/10 hover:border-purple-500/50 transition-all group"
+            title="Back to Agent Selection"
           >
-            <i className="fas fa-arrow-left text-white/60 text-sm"></i>
+            <i className="fas fa-home text-purple-400 group-hover:text-purple-300 text-sm"></i>
+            <span className="text-[10px] uppercase tracking-[0.2em] text-white/50 group-hover:text-white/70 font-bold hidden sm:inline">
+              Home
+            </span>
           </button>
+          
+          {/* Divider */}
+          <div className="w-px h-6 bg-white/10"></div>
+          
           <div>
             <h1 className="font-serif text-lg font-bold text-white">{selectedCoach?.name}</h1>
             <span className="text-[10px] uppercase tracking-[0.2em] text-white/40">
