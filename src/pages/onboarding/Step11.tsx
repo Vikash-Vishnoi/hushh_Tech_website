@@ -3,9 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import config from '../../resources/config/config';
 import { useFooterVisibility } from '../../utils/useFooterVisibility';
 
-// DOB Inference API URL
-const DOB_INFERENCE_API = `${config.SUPABASE_URL}/functions/v1/hushh-dob-inference`;
-
 // Back arrow icon (same as Step3)
 const BackIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -56,11 +53,8 @@ function OnboardingStep11() {
   const [error, setError] = useState<string | null>(null);
   const [showInfo, setShowInfo] = useState(false);
   
-  // DOB Inference state
-  const [isInferringDob, setIsInferringDob] = useState(false);
-  const [inferenceMessage, setInferenceMessage] = useState<string | null>(null);
-  const [dobConfidence, setDobConfidence] = useState<number>(0);
-  const dobAbortController = useRef<AbortController | null>(null);
+  // Ref for native date picker
+  const dateInputRef = useRef<HTMLInputElement>(null);
 
   const formatIsoToDisplay = (iso?: string | null) => {
     if (!iso) return '';
@@ -110,16 +104,15 @@ function OnboardingStep11() {
       const { data: { user } } = await config.supabaseClient.auth.getUser();
       if (!user) return;
 
-      // Fetch existing data including name and address for DOB inference
+      // Fetch existing data
       const { data } = await config.supabaseClient
         .from('onboarding_data')
-        .select('ssn_encrypted, date_of_birth, legal_first_name, legal_last_name, residence_country, city, state, address_country, phone_number, phone_country_code')
+        .select('ssn_encrypted, date_of_birth')
         .eq('user_id', user.id)
         .single();
 
-      // ✅ RESTORE saved DOB and SSN when user returns to this step
+      // Restore saved DOB and SSN when user returns to this step
       if (data?.date_of_birth) {
-        // Convert ISO format (YYYY-MM-DD) to display format (MM/DD/YYYY)
         const savedDob = formatIsoToDisplay(data.date_of_birth);
         if (savedDob) {
           setDob(savedDob);
@@ -130,105 +123,9 @@ function OnboardingStep11() {
         setSsn(data.ssn_encrypted);
         console.log('[Step11] ✅ Restored saved SSN');
       }
-
-      // Only call API if DOB is NOT already saved (avoid redundant API calls)
-      if (data?.date_of_birth) {
-        console.log('[Step11] DOB already saved, skipping AI inference');
-        return;
-      }
-
-      // If no saved DOB, call API fresh
-      // If we have name, infer DOB in real-time using Gemini + Google Search
-      if (data?.legal_first_name && data?.legal_last_name) {
-        const fullName = `${data.legal_first_name} ${data.legal_last_name}`;
-        
-        // Build API parameters (all dynamic, no hard-coding)
-        const apiParams = {
-          name: fullName,
-          email: user.email || '',
-          address: {
-            city: data.city || '',
-            state: data.state || '',
-            country: data.address_country || data.residence_country || '',
-          },
-          residenceCountry: data.residence_country || '',
-          phone: data.phone_country_code && data.phone_number 
-            ? `${data.phone_country_code}${data.phone_number}` 
-            : '',
-        };
-        
-        // Log exactly what we're sending to the API
-        console.log('[Step11] 🚀 REAL-TIME DOB Inference - API Parameters:');
-        console.log('  📛 Name:', apiParams.name);
-        console.log('  📧 Email:', apiParams.email);
-        console.log('  🏠 City:', apiParams.address.city);
-        console.log('  🏛️ State:', apiParams.address.state);
-        console.log('  🌍 Country:', apiParams.address.country);
-        console.log('  📱 Phone:', apiParams.phone);
-        
-        setIsInferringDob(true);
-        setInferenceMessage('🔍 Searching for your date of birth...');
-        
-        dobAbortController.current = new AbortController();
-        
-        try {
-          const response = await fetch(DOB_INFERENCE_API, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'apikey': config.SUPABASE_ANON_KEY,
-              'Authorization': `Bearer ${config.SUPABASE_ANON_KEY}`,
-            },
-            body: JSON.stringify(apiParams),
-            signal: dobAbortController.current.signal,
-          });
-
-          const result = await response.json();
-          console.log('[Step11] 📅 DOB API Response:', result);
-
-          if (result.success && result.data?.dobDisplay) {
-            // ALWAYS overwrite with fresh API result - no caching
-            setDob(result.data.dobDisplay);
-            setDobConfidence(result.data.confidence || 0);
-            
-            // Show success message with confidence and method
-            const confidenceText = result.data.confidence >= 70 ? '✅' : result.data.confidence >= 40 ? '🔶' : '🔍';
-            const reasoning = result.data.reasoning ? ` - ${result.data.reasoning.slice(0, 50)}...` : '';
-            setInferenceMessage(`${confidenceText} Found: ${result.data.dobDisplay} (${result.data.confidence}% confidence)${reasoning}`);
-            
-            console.log('[Step11] ✅ DOB pre-filled:', result.data.dobDisplay, 'Confidence:', result.data.confidence);
-            
-            // Keep message visible longer for user to see reasoning
-            setTimeout(() => setInferenceMessage(null), 5000);
-          } else {
-            console.log('[Step11] ❌ DOB inference returned no data:', result);
-            setInferenceMessage('Could not find DOB - please enter manually');
-            setTimeout(() => setInferenceMessage(null), 3000);
-          }
-        } catch (err) {
-          if ((err as Error).name === 'AbortError') {
-            console.log('[Step11] DOB inference aborted');
-          } else {
-            console.error('[Step11] ❌ DOB inference error:', err);
-            setInferenceMessage('Search failed - please enter manually');
-            setTimeout(() => setInferenceMessage(null), 3000);
-          }
-        } finally {
-          setIsInferringDob(false);
-        }
-      } else {
-        console.log('[Step11] ⚠️ Missing name data - cannot infer DOB');
-      }
     };
 
     loadData();
-    
-    // Cleanup: abort pending request on unmount
-    return () => {
-      if (dobAbortController.current) {
-        dobAbortController.current.abort();
-      }
-    };
   }, []);
 
   const formatSSN = (value: string) => {
@@ -255,10 +152,25 @@ function OnboardingStep11() {
     setDob(formatted);
   };
 
+  // Handle native date picker selection
+  const handleNativeDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const isoDate = e.target.value; // Format: YYYY-MM-DD
+    if (isoDate) {
+      const displayDate = formatIsoToDisplay(isoDate);
+      setDob(displayDate);
+    }
+  };
+
+  // Open native date picker when calendar icon is clicked
+  const openDatePicker = () => {
+    if (dateInputRef.current) {
+      dateInputRef.current.showPicker?.(); // Modern browsers
+      dateInputRef.current.click(); // Fallback
+    }
+  };
+
   // SSN is OPTIONAL - user can continue with just DOB
-  // User can continue even while API is loading (manual entry allowed)
   const isFormValid = dob.length === 10;  // Only DOB is required
-  const hasSSN = ssn.length === 11;
   const canSkip = dob.length === 10;  // Can skip SSN if DOB is filled
 
   const handleContinue = async () => {
@@ -457,36 +369,28 @@ function OnboardingStep11() {
                   inputMode="numeric"
                   className="flex w-full rounded-lg text-slate-900 border border-slate-200 bg-white h-12 px-4 pr-10 text-base font-medium placeholder:text-slate-400 focus:outline-0 focus:ring-2 focus:ring-[#2b8cee]/20 focus:border-[#2b8cee] transition-all"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                {/* Clickable Calendar Icon */}
+                <button 
+                  type="button"
+                  onClick={openDatePicker}
+                  aria-label="Open date picker"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer hover:opacity-70 transition-opacity p-1"
+                >
                   <CalendarIcon />
-                </span>
+                </button>
+                {/* Hidden native date input */}
+                <input
+                  ref={dateInputRef}
+                  type="date"
+                  onChange={handleNativeDateChange}
+                  className="sr-only"
+                  aria-hidden="true"
+                  tabIndex={-1}
+                  max={new Date().toISOString().split('T')[0]}
+                  min="1900-01-01"
+                />
               </div>
             </label>
-            
-            {/* DOB Inference Status */}
-            {(isInferringDob || inferenceMessage) && (
-              <div className={`mt-3 py-2 px-3 rounded-lg flex items-center gap-2 text-sm font-medium transition-all ${
-                isInferringDob 
-                  ? 'bg-blue-50 text-blue-600' 
-                  : dobConfidence >= 70
-                    ? 'bg-green-50 text-green-600'
-                    : dobConfidence >= 40
-                      ? 'bg-amber-50 text-amber-600'
-                      : 'bg-slate-50 text-slate-600'
-              }`}>
-                {isInferringDob ? (
-                  <>
-                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <span>{inferenceMessage || 'Searching...'}</span>
-                  </>
-                ) : (
-                  <span>{inferenceMessage}</span>
-                )}
-              </div>
-            )}
           </div>
         </main>
 
