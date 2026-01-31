@@ -4,11 +4,12 @@
  * Simple password-protected admin page to view all NDA signed agreements.
  * Password: 123456
  * Design: Simple black/white table with no colors.
+ * 
+ * Uses Supabase Edge Function to bypass RLS and fetch all NDA records.
  */
 
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import config from '../../resources/config/config';
 
 interface NDARecord {
   user_id: string;
@@ -22,6 +23,7 @@ interface NDARecord {
 }
 
 const ADMIN_PASSWORD = '123456';
+const NDA_ADMIN_FETCH_URL = `${import.meta.env.VITE_SUPABASE_URL || 'https://ibsisfnjxeowvdtvgzff.supabase.co'}/functions/v1/nda-admin-fetch`;
 
 const NDAAdminPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -70,22 +72,31 @@ const NDAAdminPage: React.FC = () => {
     setError(null);
 
     try {
-      if (!config.supabaseClient) {
-        throw new Error('Supabase client not initialized');
+      // Call the edge function with password for authentication
+      const response = await fetch(NDA_ADMIN_FETCH_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlic2lzZm5qeGVvd3ZkdHZnemZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1NTk1NzgsImV4cCI6MjA4MDEzNTU3OH0.K16sO1R9L2WZGPueDP0mArs2eDYZc-TnIk2LApDw_fs'}`,
+        },
+        body: JSON.stringify({
+          password: ADMIN_PASSWORD,
+          highlightUserId: highlightUserId || undefined,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || `HTTP ${response.status}`);
       }
 
-      // Fetch all records where NDA has been signed from onboarding_data table
-      const { data, error: fetchError } = await config.supabaseClient
-        .from('onboarding_data')
-        .select('user_id, full_name, email, nda_signed_at, nda_version, nda_signer_ip, nda_signer_name, nda_pdf_url')
-        .not('nda_signed_at', 'is', null)
-        .order('nda_signed_at', { ascending: false });
+      const data = await response.json();
 
-      if (fetchError) {
-        throw fetchError;
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to fetch NDA records');
       }
 
-      setNdaRecords(data || []);
+      setNdaRecords(data.records || []);
     } catch (err) {
       console.error('Error fetching NDA records:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch NDA records');
