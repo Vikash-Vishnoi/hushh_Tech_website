@@ -60,7 +60,7 @@ function OnboardingStep10() {
   const navigate = useNavigate();
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
-  const [country, setCountry] = useState('US'); // ISO code
+  const [country, setCountry] = useState(''); // Empty initially - will be set by GPS or user selection
   const [state, setState] = useState('');
   const [city, setCity] = useState('');
   const [zipCode, setZipCode] = useState('');
@@ -74,11 +74,24 @@ function OnboardingStep10() {
   const [countries, setCountries] = useState<Country[]>([]);
   const [states, setStates] = useState<State[]>([]);
   const [cities, setCities] = useState<City[]>([]);
-  const [loadingLocations, setLoadingLocations] = useState(false);
+  const [loadingCountries, setLoadingCountries] = useState(true);
+  const [loadingStates, setLoadingStates] = useState(false);
+  const [loadingCities, setLoadingCities] = useState(false);
+  
+  // FIXED: Store pending GPS data in STATE (not refs) so useEffect can detect changes
+  const [pendingGpsData, setPendingGpsData] = useState<{
+    countryCode?: string;
+    stateCode?: string;
+    stateName?: string;
+    city?: string;
+    postalCode?: string;
+    addressLine1?: string;
+    addressLine2?: string;
+  } | null>(null);
   
   // Track if initial data loading is complete (for disabling continue button)
   const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const [locationReady, setLocationReady] = useState(false);
+  const [countriesLoaded, setCountriesLoaded] = useState(false);
 
   // Scroll to top on component mount
   useEffect(() => {
@@ -89,16 +102,18 @@ function OnboardingStep10() {
   useEffect(() => {
     const fetchCountries = async () => {
       try {
-        setLoadingLocations(true);
+        setLoadingCountries(true);
         const response = await fetch(`${LOCATIONS_API}?type=countries`);
         const result = await response.json();
         if (result.data) {
           setCountries(result.data);
+          setCountriesLoaded(true);
+          console.log('[Step10] Countries loaded:', result.data.length);
         }
       } catch (err) {
         console.error('Error fetching countries:', err);
       } finally {
-        setLoadingLocations(false);
+        setLoadingCountries(false);
       }
     };
 
@@ -114,16 +129,17 @@ function OnboardingStep10() {
 
     const fetchStates = async () => {
       try {
-        setLoadingLocations(true);
+        setLoadingStates(true);
         const response = await fetch(`${LOCATIONS_API}?type=states&country=${country}`);
         const result = await response.json();
         if (result.data) {
           setStates(result.data);
+          console.log('[Step10] States loaded for', country, ':', result.data.length);
         }
       } catch (err) {
         console.error('Error fetching states:', err);
       } finally {
-        setLoadingLocations(false);
+        setLoadingStates(false);
       }
     };
 
@@ -139,16 +155,17 @@ function OnboardingStep10() {
 
     const fetchCities = async () => {
       try {
-        setLoadingLocations(true);
+        setLoadingCities(true);
         const response = await fetch(`${LOCATIONS_API}?type=cities&country=${country}&state=${state}`);
         const result = await response.json();
         if (result.data) {
           setCities(result.data);
+          console.log('[Step10] Cities loaded for', state, ':', result.data.length);
         }
       } catch (err) {
         console.error('Error fetching cities:', err);
       } finally {
-        setLoadingLocations(false);
+        setLoadingCities(false);
       }
     };
 
@@ -872,10 +889,10 @@ function OnboardingStep10() {
                       setState(e.target.value);
                       setCity('');
                     }}
-                    disabled={!country || loadingLocations}
+                    disabled={!country || loadingStates}
                     className="w-full h-12 px-4 pr-10 rounded-lg border border-gray-200 bg-white text-slate-900 text-base focus:outline-none focus:ring-2 focus:ring-[#2b8cee]/20 focus:border-[#2b8cee] transition-all appearance-none disabled:bg-slate-50 disabled:text-slate-400"
                   >
-                    <option value="">Select</option>
+                    <option value="">{loadingStates ? 'Loading...' : 'Select'}</option>
                     {states.map((s) => (
                       <option key={s.isoCode} value={s.isoCode}>
                         {s.name}
@@ -898,10 +915,10 @@ function OnboardingStep10() {
                     id="city"
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
-                    disabled={!state || loadingLocations}
+                    disabled={!state || loadingCities}
                     className="w-full h-12 px-4 pr-10 rounded-lg border border-gray-200 bg-white text-slate-900 text-base focus:outline-none focus:ring-2 focus:ring-[#2b8cee]/20 focus:border-[#2b8cee] transition-all appearance-none disabled:bg-slate-50 disabled:text-slate-400"
                   >
-                    <option value="">Select</option>
+                    <option value="">{loadingCities ? 'Loading...' : 'Select'}</option>
                     {cities.map((c) => (
                       <option key={c.name} value={c.name}>
                         {c.name}
