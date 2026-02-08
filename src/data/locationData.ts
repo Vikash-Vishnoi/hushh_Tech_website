@@ -1,11 +1,17 @@
 /**
- * Lightweight country/state/city data utility.
- * Replaces the `country-state-city` npm package which causes
- * "Maximum call stack size exceeded" on iOS Safari/WebKit.
+ * Location data service for country/state/city selection.
  *
- * Uses the free countriesnow.space API for states and cities,
- * with a static countries list (no heavy data processing).
+ * Architecture:
+ * - Countries: static list (no server call needed, instant)
+ * - States & Cities: fetched from Supabase Edge Function `get-locations`
+ *   which runs `country-state-city` server-side (safe from iOS stack overflow)
+ * - All fetches are async → non-blocking, never on main thread
+ * - Fallback to countriesnow.space API if edge function fails
  */
+
+import config from '../resources/config/config';
+
+// ─── Types ────────────────────────────────────────────────────────────
 
 export interface CountryItem {
   isoCode: string;
@@ -224,13 +230,20 @@ const COUNTRIES: CountryItem[] = [
   { isoCode: 'ZW', name: 'Zimbabwe' },
 ];
 
-// ─── ISO-to-name lookup ───────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────
+
 const COUNTRY_NAME_MAP: Record<string, string> = {};
 COUNTRIES.forEach(c => { COUNTRY_NAME_MAP[c.isoCode] = c.name; });
 
+/** Build the edge function URL from Supabase config. */
+const getEdgeFunctionUrl = (): string => {
+  const base = config.SUPABASE_URL;
+  return `${base}/functions/v1/get-locations`;
+};
+
 // ─── Public API ───────────────────────────────────────────────────────
 
-/** Get all countries (static, no processing overhead). */
+/** Get all countries (static, instant, no network call). */
 export const getAllCountries = (): CountryItem[] => COUNTRIES;
 
 /** Get country name by ISO code. */
@@ -238,10 +251,70 @@ export const getCountryName = (isoCode: string): string =>
   COUNTRY_NAME_MAP[isoCode] || isoCode;
 
 /**
- * Fetch states/provinces for a country using countriesnow.space API.
- * Falls back to empty array on failure.
+ * Fetch states for a country from the Supabase Edge Function.
+ * The edge function uses `country-state-city` server-side (safe from iOS issues).
+ * Falls back to countriesnow.space API on failure.
  */
 export const getStatesOfCountry = async (
+  countryIsoCode: string
+): Promise<StateItem[]> => {
+  if (!countryIsoCode) return [];
+
+  // Primary: Supabase Edge Function (uses country-state-city server-side)
+  try {
+    const url = `${getEdgeFunctionUrl()}?type=states&country=${encodeURIComponent(countryIsoCode)}`;
+    const res = await fetch(url, {
+      headers: { 'apikey': config.SUPABASE_ANON_KEY },
+    });
+
+    if (res.ok) {
+      const json = await res.json();
+      if (json.data && Array.isArray(json.data)) {
+        return json.data as StateItem[];
+      }
+    }
+  } catch (err) {
+    console.warn('[locationData] Edge function failed, trying fallback:', err);
+  }
+
+  // Fallback: countriesnow.space API
+  return fetchStatesFromFallback(countryIsoCode);
+};
+
+/**
+ * Fetch cities for a state from the Supabase Edge Function.
+ * Falls back to countriesnow.space API on failure.
+ */
+export const getCitiesOfState = async (
+  countryIsoCode: string,
+  stateCode: string
+): Promise<CityItem[]> => {
+  if (!countryIsoCode || !stateCode) return [];
+
+  // Primary: Supabase Edge Function
+  try {
+    const url = `${getEdgeFunctionUrl()}?type=cities&country=${encodeURIComponent(countryIsoCode)}&state=${encodeURIComponent(stateCode)}`;
+    const res = await fetch(url, {
+      headers: { 'apikey': config.SUPABASE_ANON_KEY },
+    });
+
+    if (res.ok) {
+      const json = await res.json();
+      if (json.data && Array.isArray(json.data)) {
+        return json.data as CityItem[];
+      }
+    }
+  } catch (err) {
+    console.warn('[locationData] Edge function failed for cities, trying fallback:', err);
+  }
+
+  // Fallback: countriesnow.space API (needs state name, not code)
+  return fetchCitiesFromFallback(countryIsoCode, stateCode);
+};
+
+// ─── Fallback Functions ───────────────────────────────────────────────
+
+const fetchStatesFromFallback = async (
   countryIsoCode: string
 ): Promise<StateItem[]> => {
   const countryName = getCountryName(countryIsoCode);
@@ -266,16 +339,12 @@ export const getStatesOfCountry = async (
     }
     return [];
   } catch (err) {
-    console.warn('[locationData] Failed to fetch states:', err);
+    console.warn('[locationData] Fallback states fetch failed:', err);
     return [];
   }
 };
 
-/**
- * Fetch cities for a state using countriesnow.space API.
- * Falls back to empty array on failure.
- */
-export const getCitiesOfState = async (
+const fetchCitiesFromFallback = async (
   countryIsoCode: string,
   stateName: string
 ): Promise<CityItem[]> => {
@@ -294,7 +363,6 @@ export const getCitiesOfState = async (
     const json = await res.json();
 
     if (!json.error && json.data) {
-      // API returns an array of city name strings
       const cityNames: string[] = Array.isArray(json.data) ? json.data : [];
       return cityNames
         .filter((name: string) => name && name.trim())
@@ -302,7 +370,7 @@ export const getCitiesOfState = async (
     }
     return [];
   } catch (err) {
-    console.warn('[locationData] Failed to fetch cities:', err);
+    console.warn('[locationData] Fallback cities fetch failed:', err);
     return [];
   }
 };
