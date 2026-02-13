@@ -114,6 +114,7 @@ export interface KycCheckResponse {
  * Steps in the KYC flow
  */
 export type FlowStep =
+  | 'FINANCIAL_LINK'
   | 'INTRO'
   | 'DETAILS_CONSENT'
   | 'AGENTS_COLLAB'
@@ -219,11 +220,25 @@ export interface KycAgentDetailModalProps {
 }
 
 /**
+ * Props for KycFinancialLinkScreen
+ */
+export interface KycFinancialLinkScreenProps {
+  userId: string;
+  userEmail?: string;
+  onContinue: () => void;
+  bankName?: string;
+}
+
+/**
  * Props for KycFlowContainer
  */
 export interface KycFlowContainerProps {
   relyingPartyId?: string;
   bankName?: string;
+  /** User ID for Plaid financial verification (pre-KYC step) */
+  userId?: string;
+  /** User email for Plaid Link UX improvement */
+  userEmail?: string;
   onComplete?: (response: KycCheckResponse) => void;
   onStartFullKyc?: () => void;
 }

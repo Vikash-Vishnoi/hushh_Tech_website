@@ -6,7 +6,8 @@ export { default as AgentCollabStrip } from './AgentCollabStrip';
 export { default as AgentConversationLog } from './AgentConversationLog';
 export { default as KYCResultCard } from './KYCResultCard';
 
-// 5-Screen UX Flow Components
+// 5-Screen UX Flow Components (including pre-KYC financial link)
+export { default as KycFinancialLinkScreen } from './screens/KycFinancialLinkScreen';
 export { default as KycFlowContainer } from './screens/KycFlowContainer';
 export { default as KycIntroScreen } from './screens/KycIntroScreen';
 export { default as KycDetailsConsentScreen } from './screens/KycDetailsConsentScreen';
@@ -40,6 +41,7 @@ export type {
   KycResultReviewScreenProps,
   KycResultFullKycScreenProps,
   KycAgentDetailModalProps,
+  KycFinancialLinkScreenProps,
 } from '../../types/kyc';
 
 // Re-export utility functions

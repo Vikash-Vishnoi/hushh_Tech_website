@@ -33,6 +33,7 @@ import {
 } from '../../../types/kyc';
 
 // Import screen components
+import KycFinancialLinkScreen from './KycFinancialLinkScreen';
 import KycIntroScreen from './KycIntroScreen';
 import KycDetailsConsentScreen from './KycDetailsConsentScreen';
 import KycAgentsCollabScreen from './KycAgentsCollabScreen';
@@ -71,7 +72,7 @@ const DEMO_MODE = getEnvVar('VITE_KYC_DEMO_MODE', 'false') === 'true';
 // =====================================================
 
 const initialState: KycFlowState = {
-  step: 'INTRO',
+  step: 'FINANCIAL_LINK',
   isLoading: false,
   error: null,
   request: null,
@@ -227,6 +228,8 @@ async function callKycCheckApi(request: KycCheckRequest): Promise<KycCheckRespon
 export const KycFlowContainer: React.FC<KycFlowContainerProps> = ({
   relyingPartyId = 'default-bank',
   bankName = 'Your Bank',
+  userId = '',
+  userEmail,
   onComplete,
   onStartFullKyc,
 }) => {
@@ -235,6 +238,18 @@ export const KycFlowContainer: React.FC<KycFlowContainerProps> = ({
   // =====================================================
   // State Transition Handlers
   // =====================================================
+  
+  /**
+   * Handle FINANCIAL_LINK → INTRO transition
+   * Called after user successfully links bank and financial data is fetched
+   */
+  const handleFinancialLinkComplete = useCallback(() => {
+    console.log('[KYC Flow] Financial verification complete, proceeding to KYC intro');
+    setState(prev => ({
+      ...prev,
+      step: 'INTRO',
+    }));
+  }, []);
   
   /**
    * Handle INTRO → DETAILS_CONSENT transition
@@ -381,6 +396,16 @@ export const KycFlowContainer: React.FC<KycFlowContainerProps> = ({
   
   const renderScreen = () => {
     switch (state.step) {
+      case 'FINANCIAL_LINK':
+        return (
+          <KycFinancialLinkScreen
+            userId={userId}
+            userEmail={userEmail}
+            onContinue={handleFinancialLinkComplete}
+            bankName={bankName}
+          />
+        );
+      
       case 'INTRO':
         return (
           <KycIntroScreen

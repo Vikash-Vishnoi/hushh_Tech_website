@@ -24,6 +24,7 @@ import KycFlowContainer from '../../components/kyc/screens/KycFlowContainer';
 import { KycCheckResponse } from '../../types/kyc';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
+import config from '../../resources/config/config';
 
 // =====================================================
 // Page Configuration
@@ -65,20 +66,37 @@ const KycFlowPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [isReady, setIsReady] = useState(false);
+  const [userId, setUserId] = useState<string>('');
+  const [userEmail, setUserEmail] = useState<string | undefined>(undefined);
   
   // Extract URL parameters
   const bankId = searchParams.get('bankId') || DEFAULT_BANK_ID;
   const bankName = searchParams.get('bankName') || DEFAULT_BANK_NAME;
   const isDemo = searchParams.get('demo') === 'true' || bankId === 'demo-bank';
   
-  // Initialize on mount
+  // Initialize on mount — get authenticated user for Plaid financial verification
   useEffect(() => {
-    // Simulate initialization delay for smooth transition
-    const timer = setTimeout(() => {
+    const init = async () => {
+      try {
+        if (config.supabaseClient) {
+          const { data: { user } } = await config.supabaseClient.auth.getUser();
+          if (user) {
+            setUserId(user.id);
+            setUserEmail(user.email || undefined);
+          } else {
+            // Use a demo user ID if not authenticated
+            setUserId(`demo-user-${Date.now()}`);
+          }
+        } else {
+          setUserId(`demo-user-${Date.now()}`);
+        }
+      } catch {
+        setUserId(`demo-user-${Date.now()}`);
+      }
       setIsReady(true);
-    }, 500);
+    };
     
-    return () => clearTimeout(timer);
+    init();
   }, []);
   
   // Handle flow completion
@@ -141,6 +159,8 @@ const KycFlowPage: React.FC = () => {
           <KycFlowContainer
             relyingPartyId={bankId}
             bankName={bankName}
+            userId={userId}
+            userEmail={userEmail}
             onComplete={handleComplete}
             onStartFullKyc={handleStartFullKyc}
           />
