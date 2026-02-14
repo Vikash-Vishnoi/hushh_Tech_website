@@ -444,10 +444,26 @@ const KycFinancialLinkScreen: React.FC<KycFinancialLinkScreenProps> = ({
           textAlign="center"
           lineHeight="1.5"
           px={2}
-          mb={8}
+          mb={4}
         >
           {headerSubtitle}
         </Text>
+
+        {/* Security badge — prominent, right below subtitle */}
+        <Flex
+          align="center"
+          gap={2}
+          mb={6}
+          px={3}
+          py={2}
+          borderRadius="20px"
+          bg={COLORS.borderLight}
+        >
+          <Box w="6px" h="6px" borderRadius="full" bg={COLORS.green} />
+          <Text fontSize="13px" color={COLORS.textSecondary} fontWeight="500">
+            Secured with 256-bit encryption · Powered by Plaid
+          </Text>
+        </Flex>
 
         {/* Product Cards */}
         <VStack spacing={3} w="100%" mb={6}>
@@ -528,13 +544,6 @@ const KycFinancialLinkScreen: React.FC<KycFinancialLinkScreenProps> = ({
           </Box>
         )}
 
-        {/* Security badge */}
-        <Flex align="center" gap={2} mb={2}>
-          <Box w="5px" h="5px" borderRadius="full" bg={COLORS.green} />
-          <Text fontSize="12px" color={COLORS.textTertiary}>
-            Secured with 256-bit encryption · Powered by Plaid
-          </Text>
-        </Flex>
         </VStack>
       </Box>
 
