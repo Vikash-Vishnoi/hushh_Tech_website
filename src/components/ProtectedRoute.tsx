@@ -64,7 +64,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
       if (!onboardingData || !onboardingData.is_completed) {
         if (!isOnOnboardingPage) {
-          navigate('/onboarding/step-1', { replace: true });
+          navigate('/onboarding/financial-link', { replace: true });
           return;
         }
       }

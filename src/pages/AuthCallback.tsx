@@ -139,7 +139,7 @@ const AuthCallback: React.FC = () => {
       return customRedirect;
     }
     // Otherwise, default behavior: onboarding or profile
-    return hasCompletedOnboarding ? '/hushh-user-profile' : '/onboarding/step-1';
+    return hasCompletedOnboarding ? '/hushh-user-profile' : '/onboarding/financial-link';
   };
 
   useEffect(() => {

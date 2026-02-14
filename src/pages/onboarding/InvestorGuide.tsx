@@ -183,9 +183,9 @@ export default function InvestorGuide() {
 
   const handleStartJourney = () => {
     if (isLoggedIn) {
-      navigate('/onboarding/step-1');
+      navigate('/onboarding/financial-link');
     } else {
-      navigate('/login', { state: { redirectTo: '/onboarding/step-1' } });
+      navigate('/login', { state: { redirectTo: '/onboarding/financial-link' } });
     }
   };
 
