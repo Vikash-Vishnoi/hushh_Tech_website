@@ -94,16 +94,62 @@ export const usePlaidLinkHook = (userId: string, userEmail?: string): UsePlaidLi
   const hasInitializedRef = useRef(false);
 
   // =====================================================
+  // OAuth Redirect Detection
+  // When banks like Chase use OAuth, the browser redirects away and back.
+  // We detect this by checking for oauth_state_id in the URL.
+  // =====================================================
+
+  const isOAuthRedirect = useRef(false);
+  const receivedRedirectUri = useRef<string | undefined>(undefined);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('oauth_state_id')) {
+      console.log('[Plaid] 🔄 OAuth redirect detected! oauth_state_id:', params.get('oauth_state_id'));
+      isOAuthRedirect.current = true;
+      receivedRedirectUri.current = window.location.href;
+    }
+  }, []);
+
+  // =====================================================
   // Step 1: Create Link Token
   // =====================================================
+
+  /** Get the OAuth redirect URI (current page without query params) */
+  const getRedirectUri = useCallback(() => {
+    const url = new URL(window.location.href);
+    url.search = '';
+    url.hash = '';
+    return url.toString();
+  }, []);
 
   const initializeLinkToken = useCallback(async () => {
     if (!userId) return;
 
+    // If returning from OAuth, we need the stored link token from sessionStorage
+    if (isOAuthRedirect.current) {
+      const storedToken = sessionStorage.getItem('plaid_link_token');
+      if (storedToken) {
+        console.log('[Plaid] 🔄 Restoring link token from sessionStorage for OAuth completion');
+        setState((prev) => ({
+          ...prev,
+          step: 'ready',
+          linkToken: storedToken,
+        }));
+        return;
+      }
+    }
+
     setState((prev) => ({ ...prev, step: 'creating_token', error: null }));
 
     try {
-      const response = await createLinkToken(userId, userEmail);
+      const redirectUri = getRedirectUri();
+      console.log('[Plaid] Creating link token with redirectUri:', redirectUri);
+      const response = await createLinkToken(userId, userEmail, redirectUri);
+
+      // Store link token for OAuth redirect recovery
+      sessionStorage.setItem('plaid_link_token', response.link_token);
+
       setState((prev) => ({
         ...prev,
         step: 'ready',
@@ -116,7 +162,7 @@ export const usePlaidLinkHook = (userId: string, userEmail?: string): UsePlaidLi
         error: err.message || 'Failed to initialize bank connection',
       }));
     }
-  }, [userId, userEmail]);
+  }, [userId, userEmail, getRedirectUri]);
 
   // Auto-initialize on mount — only once per hook instance
   useEffect(() => {
@@ -323,7 +369,23 @@ export const usePlaidLinkHook = (userId: string, userEmail?: string): UsePlaidLi
     onSuccess: handlePlaidSuccess,
     onExit: handlePlaidExit,
     onEvent: handlePlaidEvent,
+    // Pass receivedRedirectUri when returning from OAuth redirect
+    // This tells the SDK to complete the OAuth flow
+    receivedRedirectUri: receivedRedirectUri.current,
   });
+
+  // Auto-open Plaid Link when returning from OAuth redirect
+  useEffect(() => {
+    if (isOAuthRedirect.current && ready && state.linkToken) {
+      console.log('[Plaid] 🔄 Auto-opening Plaid Link to complete OAuth flow');
+      setState((prev) => ({ ...prev, step: 'linking' }));
+      open();
+      // Clean up the URL to remove oauth_state_id
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete('oauth_state_id');
+      window.history.replaceState({}, '', cleanUrl.toString());
+    }
+  }, [ready, state.linkToken, open]);
 
   // =====================================================
   // Public Methods

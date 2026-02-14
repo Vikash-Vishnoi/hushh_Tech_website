@@ -99,12 +99,13 @@ const getHeaders = (accessToken?: string): Record<string, string> => ({
 export const createLinkToken = async (
   userId: string,
   userEmail?: string,
+  redirectUri?: string,
 ): Promise<PlaidLinkTokenResponse> => {
   const token = await getUserAccessToken();
   const response = await fetch(`${SUPABASE_URL}/create-link-token`, {
     method: 'POST',
     headers: getHeaders(token),
-    body: JSON.stringify({ userId, userEmail }),
+    body: JSON.stringify({ userId, userEmail, redirectUri }),
   });
 
   if (!response.ok) {

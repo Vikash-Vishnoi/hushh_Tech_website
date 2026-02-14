@@ -7,7 +7,8 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { userId, userEmail } = await req.json();
+    const body = await req.json();
+    const { userId, userEmail } = body;
 
     if (!userId) {
       return new Response(
@@ -21,18 +22,28 @@ Deno.serve(async (req) => {
     const PLAID_ENV = Deno.env.get('PLAID_ENV') || 'sandbox';
     const baseUrl = `https://${PLAID_ENV}.plaid.com`;
 
+    // Support OAuth redirect URI for banks that use OAuth (e.g., Chase)
+    const redirectUri = body.redirectUri || null;
+
+    const linkConfig: Record<string, any> = {
+      client_id: PLAID_CLIENT_ID,
+      secret: PLAID_SECRET,
+      user: { client_user_id: userId, email_address: userEmail },
+      client_name: 'Hushh',
+      products: ['auth', 'transactions', 'investments', 'assets'],
+      country_codes: ['US'],
+      language: 'en',
+    };
+
+    // Add redirect_uri for OAuth flow — required for banks like Chase, Wells Fargo
+    if (redirectUri) {
+      linkConfig.redirect_uri = redirectUri;
+    }
+
     const response = await fetch(`${baseUrl}/link/token/create`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        client_id: PLAID_CLIENT_ID,
-        secret: PLAID_SECRET,
-        user: { client_user_id: userId, email_address: userEmail },
-        client_name: 'Hushh',
-        products: ['auth', 'transactions', 'investments', 'assets'],
-        country_codes: ['US'],
-        language: 'en',
-      }),
+      body: JSON.stringify(linkConfig),
     });
 
     const data = await response.json();
