@@ -9,7 +9,7 @@
  * 5. Track status of each product independently
  */
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { usePlaidLink as usePlaidLinkSDK, PlaidLinkOnSuccess, PlaidLinkOnExit } from 'react-plaid-link';
+import { usePlaidLink as usePlaidLinkSDK, PlaidLinkOnSuccess, PlaidLinkOnExit, PlaidLinkOnEvent } from 'react-plaid-link';
 import {
   createLinkToken,
   exchangeToken,
@@ -226,13 +226,22 @@ export const usePlaidLinkHook = (userId: string, userEmail?: string): UsePlaidLi
   // Plaid Link Exit Handler
   // =====================================================
 
-  const handlePlaidExit: PlaidLinkOnExit = useCallback((err) => {
+  const handlePlaidExit: PlaidLinkOnExit = useCallback((err, metadata) => {
+    console.log('[Plaid] 🚪 onExit called', {
+      error: err,
+      status: metadata?.status,
+      institution: metadata?.institution,
+      linkSessionId: metadata?.link_session_id,
+    });
+
     if (err) {
       setState((prev) => ({
         ...prev,
         step: 'error',
         error: `Bank connection was interrupted: ${err.display_message || err.error_message || 'Unknown error'}`,
       }));
+    } else {
+      console.log('[Plaid] User closed Plaid Link without error. Status:', metadata?.status);
     }
     // If user just closed, stay in 'ready' state
   }, []);
@@ -298,6 +307,14 @@ export const usePlaidLinkHook = (userId: string, userEmail?: string): UsePlaidLi
   }, []);
 
   // =====================================================
+  // Plaid Link Event Handler — logs ALL events
+  // =====================================================
+
+  const handlePlaidEvent: PlaidLinkOnEvent = useCallback((eventName, metadata) => {
+    console.log(`[Plaid] 📡 Event: ${eventName}`, metadata);
+  }, []);
+
+  // =====================================================
   // Plaid Link SDK
   // =====================================================
 
@@ -305,6 +322,7 @@ export const usePlaidLinkHook = (userId: string, userEmail?: string): UsePlaidLi
     token: state.linkToken,
     onSuccess: handlePlaidSuccess,
     onExit: handlePlaidExit,
+    onEvent: handlePlaidEvent,
   });
 
   // =====================================================
