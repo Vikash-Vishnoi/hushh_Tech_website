@@ -182,7 +182,7 @@ export default function Hero() {
     }
     return { 
       text: "Complete Your Hushh Profile", 
-      action: () => navigate("/onboarding/financial-link"),
+      action: () => navigate("/onboarding/step-1"),
       loading: false
     };
   };

@@ -270,7 +270,7 @@ const ProfilePage: React.FC = () => {
     }
     return { 
       text: "Complete Your Hushh Profile", 
-      action: () => navigate("/onboarding/financial-link")
+      action: () => navigate("/onboarding/step-1")
     };
   };
 
