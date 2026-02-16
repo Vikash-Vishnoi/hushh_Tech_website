@@ -207,7 +207,7 @@ function OnboardingStep8() {
   const applyLocationToForm = useCallback((locData: LocationData) => {
     console.log('[Step8] Applying location data to form:', locData);
 
-    // Zip code â€” no dropdown dependency
+    // Zip code - no dropdown dependency
     if (locData.postalCode) setZipCode(locData.postalCode);
 
     // Parse formattedAddress into address lines (GPS gives full address, IP doesn't)
@@ -223,14 +223,14 @@ function OnboardingStep8() {
       }
     }
 
-    // Country â€” set directly + store in ref for safety
+    // Country - set directly + store in ref for safety
     if (locData.countryCode) {
       pendingGpsCountry.current = locData.countryCode;
       setCountry(locData.countryCode);
       console.log('[Step8] Country set:', locData.countryCode);
     }
 
-    // State â€” store in ref, applied when states dropdown loads
+    // State - store in ref, applied when states dropdown loads
     if (locData.stateCode) {
       pendingGpsState.current = locData.stateCode;
       console.log('[Step8] Pending state (code):', locData.stateCode);
@@ -239,7 +239,7 @@ function OnboardingStep8() {
       console.log('[Step8] Pending state (name):', locData.state);
     }
 
-    // City â€” store in ref, applied when cities dropdown loads
+    // City - store in ref, applied when cities dropdown loads
     if (locData.city) {
       pendingGpsCity.current = locData.city;
       console.log('[Step8] Pending city:', locData.city);

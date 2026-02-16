@@ -689,7 +689,7 @@ function MeetCeoPage() {
                         Redirecting...
                       </span>
                     ) : (
-                      'Complete Registration â€” $1'
+                      'Complete Registration - $1'
                     )}
                   </button>
 
@@ -741,7 +741,7 @@ function MeetCeoPage() {
                   disabled={bookingInProgress}
                   className="flex w-full cursor-pointer items-center justify-center rounded-full bg-transparent py-2 text-slate-500 text-sm font-bold hover:text-slate-800 transition-colors"
                 >
-                  Skip â€” I'll book later
+                  Skip - I'll book later
                 </button>
               </div>
             )}

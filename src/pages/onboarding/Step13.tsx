@@ -203,7 +203,7 @@ function OnboardingStep13() {
   const totalInvestment = calculateTotalInvestment();
   const hasAnyUnits = shareUnits.class_a_units > 0 || shareUnits.class_b_units > 0 || shareUnits.class_c_units > 0;
 
-  // Fix 2: Cleanup on unmount â€” clear timeouts, mark unmounted
+  // Fix 2: Cleanup on unmount - clear timeouts, mark unmounted
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
@@ -313,7 +313,7 @@ function OnboardingStep13() {
               setPlaidAccounts(mappedAccounts);
               if (financialData.institution_name) setPlaidInstitutionName(financialData.institution_name);
 
-              // Auto-select first account â€” only fill fields user hasn't touched
+              // Auto-select first account - only fill fields user hasn't touched
               const firstAccount = mappedAccounts[0];
               setSelectedAccountIdx(0);
 
@@ -606,12 +606,12 @@ function OnboardingStep13() {
             </div>
           )}
 
-          {/* Fix 3: Multi-Account Selector â€” only shown if Plaid returned 2+ accounts */}
+          {/* Fix 3: Multi-Account Selector - only shown if Plaid returned 2+ accounts */}
           {plaidAccounts.length > 1 && (
             <div className="mx-5 mb-5">
               <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
                 <p className="text-xs font-bold tracking-widest text-slate-500 uppercase mb-3">
-                  {plaidInstitutionName ? `${plaidInstitutionName} â€” ` : ''}SELECT ACCOUNT
+                  {plaidInstitutionName ? `${plaidInstitutionName} - ` : ''}SELECT ACCOUNT
                 </p>
                 <div className="space-y-2">
                   {plaidAccounts.map((acct, idx) => {
