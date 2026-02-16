@@ -174,7 +174,7 @@ function MeetCeoPage() {
         .from('ceo_meeting_payments')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (payment?.payment_status === 'completed') {
         setHushhCoins(payment.hushh_coins_awarded || 100);
