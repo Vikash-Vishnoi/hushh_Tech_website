@@ -199,7 +199,7 @@ function VerifyIdentityPage() {
 
   if (loading) {
     return (
-      <Box minH="100vh" bg="white" display="flex" alignItems="center" justifyContent="center">
+      <Box minH="100dvh" bg="white" display="flex" alignItems="center" justifyContent="center">
         <VStack spacing={4}>
           <Spinner size="xl" color="cyan.500" thickness="4px" />
           <Text color="gray.600">Loading...</Text>
@@ -209,7 +209,7 @@ function VerifyIdentityPage() {
   }
 
   return (
-    <Box minH="100vh" bg="white" pt={{ base: 20, md: 24 }} pb={12} px={4}>
+    <Box minH="100dvh" bg="white" pt={{ base: 20, md: 24 }} pb={12} px={4}>
       <Box maxW="640px" mx="auto">
         {/* Header */}
         <VStack spacing={4} textAlign="center" mb={8}>

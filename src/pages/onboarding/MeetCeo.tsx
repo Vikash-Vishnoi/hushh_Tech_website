@@ -364,6 +364,11 @@ function MeetCeoPage() {
     navigate('/hushh-user-profile');
   };
 
+  const handleSkipPaymentForNow = () => {
+    sessionStorage.setItem('meet_ceo_payment_skipped', 'true');
+    navigate('/hushh-user-profile');
+  };
+
   const handleBack = () => {
     navigate('/onboarding/step-13');
   };
@@ -691,6 +696,15 @@ function MeetCeoPage() {
                     ) : (
                       'Complete Registration - $1'
                     )}
+                  </button>
+
+                  {/* Skip for testing */}
+                  <button
+                    onClick={handleSkipPaymentForNow}
+                    disabled={loading}
+                    className="flex w-full cursor-pointer items-center justify-center rounded-full border border-slate-200 bg-white py-3 text-slate-700 text-sm font-semibold transition-all hover:bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    Skip for now
                   </button>
 
                   {/* Back Button */}

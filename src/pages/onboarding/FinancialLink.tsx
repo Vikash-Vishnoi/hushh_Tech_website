@@ -10,9 +10,9 @@
  * On completion → navigates to /onboarding/step-1
  * Data is saved to Supabase `user_financial_data` table automatically.
  */
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box } from '@chakra-ui/react';
+import { Box, Spinner, Text, VStack } from '@chakra-ui/react';
 import config from '../../resources/config/config';
 import KycFinancialLinkScreen from '../../components/kyc/screens/KycFinancialLinkScreen';
 import type { FinancialVerificationResult } from '../../types/kyc';
@@ -81,7 +81,7 @@ export default function OnboardingFinancialLink() {
   // Handle financial verification complete → go to Step 1
   const handleContinue = (result: FinancialVerificationResult) => {
     console.log('[FinancialLink] Verification complete:', result);
-    navigate('/onboarding/step-1');
+    navigate('/onboarding/step-1', { replace: true });
   };
 
   // Skip option — let user proceed without linking bank
@@ -89,12 +89,28 @@ export default function OnboardingFinancialLink() {
     // Set skip flag so Step 1 knows this was intentional
     sessionStorage.setItem('financial_link_skipped', 'true');
     console.log('[FinancialLink] User skipped financial verification');
-    navigate('/onboarding/step-1');
+    navigate('/onboarding/step-1', { replace: true });
   };
 
   // Loading state — clean white screen
   if (!isReady || !userId) {
-    return <Box minH="100vh" bg="#FFFFFF" />;
+    return (
+      <Box
+        minH="100dvh"
+        bg="#FFFFFF"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        px={6}
+      >
+        <VStack spacing={3}>
+          <Spinner size="lg" color="#2F80ED" thickness="3px" />
+          <Text fontSize="sm" color="gray.500" textAlign="center">
+            Preparing your secure onboarding...
+          </Text>
+        </VStack>
+      </Box>
+    );
   }
 
   return (

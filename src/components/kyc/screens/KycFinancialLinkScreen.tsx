@@ -21,13 +21,11 @@ import {
   Flex,
   Spinner,
   Badge,
-  HStack,
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
 import { usePlaidLinkHook } from '../../../services/plaid/usePlaidLink';
 import {
   formatCurrency,
-  getHeaderTitle,
   type ProductFetchStatus,
 } from '../../../services/plaid/plaidService';
 import type { FinancialVerificationResult } from '../../../types/kyc';
@@ -450,7 +448,9 @@ const KycFinancialLinkScreen: React.FC<KycFinancialLinkScreenProps> = ({
 
   return (
     <Box
-      minH="100vh"
+      className="onboarding-shell"
+      minH="100dvh"
+      h="100dvh"
       bg={COLORS.bg}
       display="flex"
       flexDirection="column"
@@ -458,11 +458,13 @@ const KycFinancialLinkScreen: React.FC<KycFinancialLinkScreenProps> = ({
     >
       {/* Scrollable Content */}
       <Box
+        as="main"
         flex="1"
+        minH={0}
         overflowY="auto"
-        px={5}
-        pt={10}
-        pb="200px"
+        overflowX="hidden"
+        px={{ base: 4, md: 5 }}
+        pt={{ base: 8, md: 10 }}
       >
         <VStack
           spacing={0}
@@ -648,7 +650,7 @@ const KycFinancialLinkScreen: React.FC<KycFinancialLinkScreenProps> = ({
         sx={{ WebkitBackdropFilter: 'blur(20px)' }}
         borderTop="1px solid"
         borderColor={COLORS.border}
-        px={5}
+        px={{ base: 4, md: 5 }}
         pt={4}
         pb={6}
         zIndex={50}
