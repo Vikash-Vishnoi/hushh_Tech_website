@@ -639,10 +639,11 @@ const KycFinancialLinkScreen: React.FC<KycFinancialLinkScreenProps> = ({
       <Box
         position="fixed"
         bottom={0}
-        left="50%"
-        transform="translateX(-50%)"
+        left={0}
+        right={0}
         w="100%"
         maxW="500px"
+        mx="auto"
         bg="rgba(255,255,255,0.95)"
         backdropFilter="blur(20px)"
         sx={{ WebkitBackdropFilter: 'blur(20px)' }}
@@ -650,8 +651,8 @@ const KycFinancialLinkScreen: React.FC<KycFinancialLinkScreenProps> = ({
         borderColor={COLORS.border}
         px={5}
         pt={4}
-        pb="env(safe-area-inset-bottom, 24px)"
-        zIndex={10}
+        pb={6}
+        zIndex={50}
         boxShadow="0 -4px 20px rgba(0,0,0,0.03)"
         data-onboarding-footer=""
       >

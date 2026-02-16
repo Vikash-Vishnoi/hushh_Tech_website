@@ -51,19 +51,25 @@ export default function OnboardingFinancialLink() {
 
       // Check if user already completed financial link
       try {
-        const { data: financialData } = await config.supabaseClient
+        const { data: financialData, error: fetchError } = await config.supabaseClient
           .from('user_financial_data')
           .select('status')
           .eq('user_id', user.id)
           .maybeSingle();
+
+        // Ignore errors (table may not exist, 406, RLS, etc.)
+        if (fetchError) {
+          console.warn('[FinancialLink] Supabase query error (ignoring):', fetchError.message);
+        }
 
         // If already completed, skip to step 1
         if (financialData?.status === 'complete' || financialData?.status === 'partial') {
           navigate('/onboarding/step-1', { replace: true });
           return;
         }
-      } catch {
+      } catch (err) {
         // Table may not exist yet — continue anyway
+        console.warn('[FinancialLink] Error checking financial data (ignoring):', err);
       }
 
       setIsReady(true);
