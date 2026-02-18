@@ -83,7 +83,7 @@ export default function OnboardingStep3() {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 flex flex-col px-6 pb-44">
+        <main className="flex-1 flex flex-col px-4 sm:px-6 pb-40 sm:pb-44">
           {/* Lottie Animation */}
           <div className="flex justify-center mb-6">
             <div style={{ width: '200px', height: '200px' }}>
@@ -98,12 +98,12 @@ export default function OnboardingStep3() {
           {/* Content Card */}
           <div className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
             {/* Heading */}
-            <h1 className="text-slate-900 text-2xl font-bold leading-tight tracking-tight mb-4 text-center">
+            <h1 className="text-slate-900 text-xl sm:text-2xl font-bold leading-tight tracking-tight mb-4 text-center">
               Let's continue with some information about you
             </h1>
 
             {/* Description */}
-            <p className="text-slate-500 text-base font-medium leading-relaxed text-center">
+            <p className="text-slate-500 text-sm sm:text-base font-medium leading-relaxed text-center">
               To comply with federal regulations, and as is typical with any investment platform, we are required to collect certain personal information about you.
             </p>
           </div>
@@ -111,14 +111,18 @@ export default function OnboardingStep3() {
 
         {/* Fixed Footer - Hidden when main footer is visible */}
         {!isFooterVisible && (
-          <div className="fixed bottom-0 left-0 right-0 z-20 w-full max-w-[500px] mx-auto bg-white border-t border-slate-100 p-6 shadow-[0_-4px_20px_rgba(0,0,0,0.03)]" data-onboarding-footer>
+          <div
+            className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-[500px] mx-auto border-t border-slate-100 bg-white/90 backdrop-blur-md px-4 sm:px-6 pt-4 sm:pt-5 pb-[calc(env(safe-area-inset-bottom)+16px)] shadow-[0_-4px_20px_rgba(0,0,0,0.04)]"
+            data-onboarding-footer
+          >
             {/* Buttons */}
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3 sm:gap-4">
               {/* Continue Button */}
               <button
                 onClick={handleContinue}
                 disabled={isLoading}
-                className="flex w-full h-12 cursor-pointer items-center justify-center rounded-full bg-[#2b8cee] text-white text-base font-bold transition-all hover:bg-[#2070c0] active:scale-[0.98] disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+                data-onboarding-cta
+                className="flex w-full h-11 sm:h-12 cursor-pointer items-center justify-center rounded-full bg-[#2b8cee] px-6 text-white text-sm sm:text-base font-semibold transition-all hover:bg-[#2070c0] active:scale-[0.98] disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
               >
                 {isLoading ? 'Loading...' : 'Continue'}
               </button>
@@ -126,14 +130,14 @@ export default function OnboardingStep3() {
               {/* Back Button */}
               <button
                 onClick={handleBack}
-                className="flex w-full cursor-pointer items-center justify-center rounded-full bg-transparent py-2 text-slate-500 text-sm font-bold hover:text-slate-800 transition-colors"
+                className="flex w-full cursor-pointer items-center justify-center rounded-full bg-transparent py-2 text-slate-500 text-sm font-semibold hover:text-slate-800 transition-colors"
               >
                 Back
               </button>
             </div>
 
             {/* Footer Note */}
-            <div className="mt-4 text-center">
+            <div className="mt-3 sm:mt-4 text-center">
               <p className="text-[10px] text-slate-400 leading-tight">
                 Secure. Private. AI-Powered.
               </p>

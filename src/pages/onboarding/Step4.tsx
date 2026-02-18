@@ -414,7 +414,7 @@ export default function OnboardingStep4() {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 flex flex-col px-6 pb-44">
+        <main className="flex-1 flex flex-col px-4 sm:px-6 pb-40 sm:pb-44">
           {/* Header Section */}
           <div className="mb-8 text-center">
             <h1 className="text-slate-900 text-[22px] font-bold leading-tight tracking-tight mb-3">
@@ -590,14 +590,18 @@ export default function OnboardingStep4() {
 
         {/* Fixed Footer - Hidden when main footer is visible */}
         {!isFooterVisible && (
-          <div className="fixed bottom-0 left-0 right-0 z-20 w-full max-w-[500px] mx-auto bg-white border-t border-slate-100 p-6 shadow-[0_-4px_20px_rgba(0,0,0,0.03)]" data-onboarding-footer>
+          <div
+            className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-[500px] mx-auto border-t border-slate-100 bg-white/90 backdrop-blur-md px-4 sm:px-6 pt-4 sm:pt-5 pb-[calc(env(safe-area-inset-bottom)+16px)] shadow-[0_-4px_20px_rgba(0,0,0,0.04)]"
+            data-onboarding-footer
+          >
             {/* Buttons */}
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3 sm:gap-4">
               {/* Continue Button */}
               <button
                 onClick={handleContinue}
                 disabled={!canContinue || isLoading || isDetectingLocation}
-                className={`flex w-full h-12 cursor-pointer items-center justify-center rounded-full text-base font-bold transition-all active:scale-[0.98] ${
+                data-onboarding-cta
+                className={`flex w-full h-11 sm:h-12 cursor-pointer items-center justify-center rounded-full px-6 text-sm sm:text-base font-semibold transition-all active:scale-[0.98] ${
                   canContinue && !isLoading && !isDetectingLocation
                     ? 'bg-[#2b8cee] text-white hover:bg-[#2070c0] shadow-md shadow-[#2b8cee]/20'
                     : 'bg-slate-100 text-slate-400 cursor-not-allowed'
@@ -615,7 +619,7 @@ export default function OnboardingStep4() {
               {/* Back Button */}
               <button
                 onClick={handleBack}
-                className="flex w-full cursor-pointer items-center justify-center rounded-full bg-transparent py-2 text-slate-500 text-sm font-bold hover:text-slate-800 transition-colors"
+                className="flex w-full cursor-pointer items-center justify-center rounded-full bg-transparent py-2 text-slate-500 text-sm font-semibold hover:text-slate-800 transition-colors"
               >
                 Back
               </button>

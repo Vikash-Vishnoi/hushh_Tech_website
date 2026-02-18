@@ -434,7 +434,7 @@ export default function OnboardingStep1() {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 flex flex-col px-6 pb-72">
+        <main className="flex-1 flex flex-col px-4 sm:px-6 pb-56 sm:pb-72">
           {/* Header Section */}
           <div className="mb-8 mt-2 flex flex-col items-center text-center">
             <h1 className="text-slate-900 text-[22px] font-extrabold leading-tight tracking-tight mb-2">
@@ -595,24 +595,28 @@ export default function OnboardingStep1() {
 
         {/* Fixed Footer - Hidden when main footer is visible */}
         {!isFooterVisible && (
-          <div className="fixed bottom-0 left-0 right-0 z-20 w-full max-w-[500px] mx-auto bg-white border-t border-slate-100 p-6 shadow-[0_-4px_20px_rgba(0,0,0,0.03)]" data-onboarding-footer>
+          <div
+            className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-[500px] mx-auto border-t border-slate-100 bg-white/90 backdrop-blur-md px-4 sm:px-6 pt-4 sm:pt-5 pb-[calc(env(safe-area-inset-bottom)+16px)] shadow-[0_-4px_20px_rgba(0,0,0,0.04)]"
+            data-onboarding-footer
+          >
             {/* Total Investment */}
-            <div className="flex items-center justify-between mb-6">
-              <span className="text-xs font-bold text-slate-500 tracking-wider uppercase">
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <span className="text-[11px] sm:text-xs font-bold text-slate-500 tracking-wider uppercase">
                 TOTAL INVESTMENT
               </span>
-              <span className="text-2xl font-extrabold text-slate-900 tracking-tight">
+              <span className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
                 {formatCurrency(totalInvestment)}
               </span>
             </div>
 
             {/* Buttons */}
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3 sm:gap-4">
               {/* Next Button */}
               <button
                 onClick={handleNext}
                 disabled={!hasSelection || isLoading || !!customAmountError}
-                className={`flex w-full cursor-pointer items-center justify-center rounded-full bg-[#2b8cee] py-4 text-white text-base font-bold transition-all hover:bg-blue-600 active:scale-[0.98] disabled:bg-slate-100 disabled:text-slate-400 ${
+                data-onboarding-cta
+                className={`flex w-full h-11 sm:h-12 cursor-pointer items-center justify-center rounded-full bg-[#2b8cee] px-6 text-white text-sm sm:text-base font-semibold transition-all hover:bg-[#2070c0] active:scale-[0.98] disabled:bg-slate-100 disabled:text-slate-400 ${
                   !hasSelection || isLoading || !!customAmountError ? 'disabled:cursor-not-allowed' : ''
                 }`}
               >
@@ -622,16 +626,16 @@ export default function OnboardingStep1() {
               {/* Back Button */}
               <button
                 onClick={handleBack}
-                className="flex w-full cursor-pointer items-center justify-center rounded-full bg-transparent py-2 text-slate-500 text-sm font-bold hover:text-slate-800 transition-colors"
+                className="flex w-full cursor-pointer items-center justify-center rounded-full bg-transparent py-2 text-slate-500 text-sm font-semibold hover:text-slate-800 transition-colors"
               >
                 Back
               </button>
             </div>
 
             {/* Footer Note */}
-            <div className="mt-4 text-center">
+            <div className="mt-3 sm:mt-4 text-center">
               <p className="text-[10px] text-slate-400 leading-tight">
-                Minimum investment per unit â€¢ Units can be adjusted later
+                Minimum investment per unit &bull; Units can be adjusted later
               </p>
             </div>
           </div>

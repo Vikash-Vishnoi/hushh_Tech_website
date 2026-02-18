@@ -576,7 +576,7 @@ function OnboardingStep13() {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto pb-64">
+        <main className="flex-1 overflow-y-auto pb-48 sm:pb-64">
           {/* Header Section - 22px title, 14px subtitle, center aligned */}
           <div className="px-5 pt-2 pb-6 flex flex-col items-center text-center">
             {/* Bank Icon */}
@@ -938,13 +938,17 @@ function OnboardingStep13() {
 
         {/* Fixed Footer - matching Step3 pattern */}
         {!isFooterVisible && (
-          <div className="fixed bottom-0 left-0 right-0 w-full max-w-[500px] mx-auto bg-white border-t border-slate-100 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-50" data-onboarding-footer>
-            <div className="p-5 pb-8 flex flex-col gap-3">
+          <div
+            className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-[500px] mx-auto border-t border-slate-100 bg-white/90 backdrop-blur-md shadow-[0_-4px_20px_rgba(0,0,0,0.04)]"
+            data-onboarding-footer
+          >
+            <div className="flex flex-col gap-3 sm:gap-4">
               {/* Continue Button */}
               <button
                 onClick={handleContinue}
                 disabled={loading || !isFormValid()}
-                className={`w-full bg-[#2b8cee] hover:bg-blue-600 text-white font-bold text-base py-4 rounded-full shadow-lg shadow-blue-500/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 ${
+                data-onboarding-cta
+                className={`w-full h-11 sm:h-12 bg-[#2b8cee] hover:bg-[#2070c0] text-white font-semibold text-sm sm:text-base px-6 rounded-full shadow-md shadow-[#2b8cee]/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2 ${
                   loading || !isFormValid() ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
               >

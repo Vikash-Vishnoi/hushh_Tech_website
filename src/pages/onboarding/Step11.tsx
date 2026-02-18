@@ -488,7 +488,7 @@ function OnboardingStep11() {
       : 'No recurring investment configured';
   const recurringSummarySubtitle =
     recurringAmount > 0
-      ? `${getFrequencyLabel(frequency)} • Day ${investmentDay}`
+      ? `${getFrequencyLabel(frequency)} \u2022 Day ${investmentDay}`
       : 'Tap Edit to add recurring amount, frequency, and day.';
 
   return (
@@ -510,7 +510,7 @@ function OnboardingStep11() {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto pb-64">
+        <main className="flex-1 overflow-y-auto pb-48 sm:pb-64">
           {/* Header Section - 22px title, 14px subtitle, center aligned */}
           <div className="px-5 pt-2 pb-6 flex flex-col items-center text-center">
             <h1 className="text-slate-900 text-[22px] font-extrabold leading-tight tracking-tight mb-2">
@@ -790,14 +790,17 @@ function OnboardingStep11() {
 
         {/* Fixed Footer - matching template exactly */}
         {!isFooterVisible && (
-          <div className="fixed bottom-0 left-0 right-0 w-full max-w-[500px] mx-auto bg-white border-t border-slate-100 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-50" data-onboarding-footer>
-            <div className="p-5 pb-8 flex flex-col gap-4">
+          <div
+            className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-[500px] mx-auto border-t border-slate-100 bg-white/90 backdrop-blur-md shadow-[0_-4px_20px_rgba(0,0,0,0.04)]"
+            data-onboarding-footer
+          >
+            <div className="flex flex-col gap-3 sm:gap-4">
               {/* Total Investment Row */}
               <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-slate-500 uppercase tracking-wider">
+                <span className="text-[11px] sm:text-sm font-bold text-slate-500 uppercase tracking-wider">
                   TOTAL INVESTMENT
                 </span>
-                <span className="text-xl font-extrabold text-slate-900">
+                <span className="text-lg sm:text-xl font-extrabold text-slate-900">
                   {formatCurrency(totalInvestment)}
                 </span>
               </div>
@@ -808,7 +811,8 @@ function OnboardingStep11() {
                 <button
                   onClick={handleContinue}
                   disabled={!isFormValid || loading}
-                  className={`w-full bg-[#2b8cee] hover:bg-blue-600 text-white font-bold text-base py-4 rounded-lg shadow-lg shadow-blue-500/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 ${
+                  data-onboarding-cta
+                  className={`w-full h-11 sm:h-12 bg-[#2b8cee] hover:bg-[#2070c0] text-white font-semibold text-sm sm:text-base px-6 rounded-full shadow-md shadow-[#2b8cee]/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2 ${
                     !isFormValid || loading ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                 >
@@ -828,7 +832,7 @@ function OnboardingStep11() {
               {/* Footer Note */}
               <div className="text-center">
                 <p className="text-[10px] text-slate-500 uppercase tracking-wide">
-                  Minimum investment per unit â€¢ Units can be adjusted later
+                  Minimum investment per unit &bull; Units can be adjusted later
                 </p>
               </div>
             </div>

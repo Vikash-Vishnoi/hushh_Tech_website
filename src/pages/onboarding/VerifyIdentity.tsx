@@ -209,7 +209,7 @@ function VerifyIdentityPage() {
   }
 
   return (
-    <Box minH="100dvh" bg="white" pt={{ base: 20, md: 24 }} pb={12} px={4}>
+    <Box minH="100dvh" bg="white" pt={{ base: 8, md: 10 }} pb={12} px={4}>
       <Box maxW="640px" mx="auto">
         {/* Header */}
         <VStack spacing={4} textAlign="center" mb={8}>

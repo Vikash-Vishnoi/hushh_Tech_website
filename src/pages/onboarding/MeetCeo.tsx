@@ -401,7 +401,7 @@ function MeetCeoPage() {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 flex flex-col px-6 pb-52">
+        <main className="flex-1 flex flex-col px-4 sm:px-6 pb-44 sm:pb-52">
           {error && (
             <div 
               className="mb-6 p-4 rounded-xl text-center border border-red-200 bg-red-50"
@@ -673,7 +673,10 @@ function MeetCeoPage() {
 
         {/* Fixed Footer - Hidden when main footer is visible */}
         {!isFooterVisible && (
-          <div className="fixed bottom-0 z-20 w-full max-w-[500px] bg-white border-t border-slate-100 p-6 shadow-[0_-4px_20px_rgba(0,0,0,0.03)]" data-onboarding-footer>
+          <div
+            className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-[500px] mx-auto border-t border-slate-100 bg-white/90 backdrop-blur-md px-4 sm:px-6 pt-4 sm:pt-5 pb-[calc(env(safe-area-inset-bottom)+16px)] shadow-[0_-4px_20px_rgba(0,0,0,0.04)]"
+            data-onboarding-footer
+          >
             {/* Not Paid Footer */}
             {paymentState === 'not_paid' && (
               <>
@@ -683,7 +686,8 @@ function MeetCeoPage() {
                   <button
                     onClick={handlePayment}
                     disabled={loading}
-                    className="flex w-full cursor-pointer items-center justify-center rounded-full bg-[#2b8cee] py-4 text-white text-base font-bold transition-all hover:bg-blue-600 active:scale-[0.98] disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+                    data-onboarding-cta
+                    className="flex w-full h-11 sm:h-12 cursor-pointer items-center justify-center rounded-full bg-[#2b8cee] px-6 text-white text-sm sm:text-base font-semibold transition-all hover:bg-[#2070c0] active:scale-[0.98] disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
                   >
                     {loading ? (
                       <span className="flex items-center justify-center gap-2">
@@ -702,7 +706,7 @@ function MeetCeoPage() {
                   <button
                     onClick={handleSkipPaymentForNow}
                     disabled={loading}
-                    className="flex w-full cursor-pointer items-center justify-center rounded-full border border-slate-200 bg-white py-3 text-slate-700 text-sm font-semibold transition-all hover:bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="flex w-full h-11 sm:h-12 cursor-pointer items-center justify-center rounded-full border border-slate-200 bg-white px-6 text-slate-700 text-sm font-semibold transition-all hover:bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     Skip for now
                   </button>
@@ -711,7 +715,7 @@ function MeetCeoPage() {
                   <button
                     onClick={handleBack}
                     disabled={loading}
-                    className="flex w-full cursor-pointer items-center justify-center rounded-full bg-transparent py-2 text-slate-500 text-sm font-bold hover:text-slate-800 transition-colors"
+                    className="flex w-full cursor-pointer items-center justify-center rounded-full bg-transparent py-2 text-slate-500 text-sm font-semibold hover:text-slate-800 transition-colors"
                   >
                     Back
                   </button>
@@ -733,7 +737,8 @@ function MeetCeoPage() {
                 <button
                   onClick={handleBookMeeting}
                   disabled={!selectedSlot || bookingInProgress}
-                  className="flex w-full cursor-pointer items-center justify-center rounded-full bg-[#2b8cee] py-4 text-white text-base font-bold transition-all hover:bg-blue-600 active:scale-[0.98] disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed"
+                  data-onboarding-cta
+                  className="flex w-full h-11 sm:h-12 cursor-pointer items-center justify-center rounded-full bg-[#2b8cee] px-6 text-white text-sm sm:text-base font-semibold transition-all hover:bg-[#2070c0] active:scale-[0.98] disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed"
                 >
                   {bookingInProgress ? (
                     <span className="flex items-center justify-center gap-2">
@@ -753,7 +758,7 @@ function MeetCeoPage() {
                 <button
                   onClick={handleContinueToProfile}
                   disabled={bookingInProgress}
-                  className="flex w-full cursor-pointer items-center justify-center rounded-full bg-transparent py-2 text-slate-500 text-sm font-bold hover:text-slate-800 transition-colors"
+                  className="flex w-full cursor-pointer items-center justify-center rounded-full bg-transparent py-2 text-slate-500 text-sm font-semibold hover:text-slate-800 transition-colors"
                 >
                   Skip - I'll book later
                 </button>
@@ -761,14 +766,15 @@ function MeetCeoPage() {
             )}
 
             {/* Booked Footer */}
-            {paymentState === 'booked' && (
-              <button
-                onClick={handleContinueToProfile}
-                className="flex w-full cursor-pointer items-center justify-center rounded-full bg-[#2b8cee] py-4 text-white text-base font-bold transition-all hover:bg-blue-600 active:scale-[0.98]"
-              >
-                Continue to My Profile
-              </button>
-            )}
+              {paymentState === 'booked' && (
+                <button
+                  onClick={handleContinueToProfile}
+                  data-onboarding-cta
+                  className="flex w-full h-11 sm:h-12 cursor-pointer items-center justify-center rounded-full bg-[#2b8cee] px-6 text-white text-sm sm:text-base font-semibold transition-all hover:bg-[#2070c0] active:scale-[0.98]"
+                >
+                  Continue to My Profile
+                </button>
+              )}
           </div>
         )}
       </div>

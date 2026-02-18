@@ -339,7 +339,7 @@ function VerifyCompletePage() {
   };
 
   return (
-    <Box minH="100dvh" bg="white" pt={{ base: 24, md: 32 }} pb={12} px={4}>
+    <Box minH="100dvh" bg="white" pt={{ base: 10, md: 14 }} pb={12} px={4}>
       <Box maxW="640px" mx="auto" textAlign="center">
         {renderContent()}
       </Box>

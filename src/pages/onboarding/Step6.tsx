@@ -275,7 +275,7 @@ export default function OnboardingStep6() {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 flex flex-col px-6 pb-48">
+        <main className="flex-1 flex flex-col px-4 sm:px-6 pb-40 sm:pb-48">
           {/* Header Section - Center Aligned */}
           <div className="mb-8 text-center">
             <h1 className="text-slate-900 text-[22px] font-bold leading-tight tracking-tight mb-3">
@@ -329,13 +329,17 @@ export default function OnboardingStep6() {
 
         {/* Fixed Footer - Hidden when main footer is visible */}
         {!isFooterVisible && (
-          <div className="fixed bottom-0 left-0 right-0 z-20 w-full max-w-[500px] mx-auto bg-white/80 backdrop-blur-md border-t border-slate-100 p-4 flex flex-col gap-3" data-onboarding-footer>
+          <div
+            className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-[500px] mx-auto border-t border-slate-100 bg-white/90 backdrop-blur-md px-4 sm:px-6 pt-4 sm:pt-5 pb-[calc(env(safe-area-inset-bottom)+16px)] shadow-[0_-4px_20px_rgba(0,0,0,0.04)] flex flex-col gap-3 sm:gap-4"
+            data-onboarding-footer
+          >
             {/* Continue Button */}
             <button
               onClick={handleContinue}
               disabled={!isValidPhone || isLoading}
+              data-onboarding-cta
               className={`
-                flex w-full cursor-pointer items-center justify-center rounded-full h-14 px-5 text-base font-bold tracking-wide transition-all active:scale-[0.98]
+                flex w-full cursor-pointer items-center justify-center rounded-full h-11 sm:h-12 px-6 text-sm sm:text-base font-semibold transition-all active:scale-[0.98]
                 ${isValidPhone && !isLoading
                   ? 'bg-[#2b8cee] hover:bg-[#2070c0] text-white shadow-md shadow-[#2b8cee]/20'
                   : 'bg-slate-100 text-slate-400 cursor-not-allowed'
@@ -348,7 +352,7 @@ export default function OnboardingStep6() {
             {/* Back Button */}
             <button
               onClick={handleBack}
-              className="flex w-full cursor-pointer items-center justify-center rounded-full bg-transparent py-2 text-slate-500 text-sm font-bold hover:text-slate-800 transition-colors"
+              className="flex w-full cursor-pointer items-center justify-center rounded-full bg-transparent py-2 text-slate-500 text-sm font-semibold hover:text-slate-800 transition-colors"
             >
               Back
             </button>

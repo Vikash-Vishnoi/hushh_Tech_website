@@ -8,6 +8,7 @@ import Footer from './components/Footer';
 import Login from './pages/Login'
 import Contact from './pages/Contact';
 import ScrollToTop from './components/ScrollToTop';
+import OnboardingShellAutoPadding from './components/OnboardingShellAutoPadding';
 // FloatingContactBubble removed as requested
 import { ChakraProvider } from '@chakra-ui/react';
 import theme from './theme';
@@ -120,9 +121,11 @@ const useLayoutVisibility = () => {
   const isOnboarding = location.pathname.startsWith('/onboarding');
 
   return {
-    showNavbar: !isHushhAI && !isHushhAgent && !isKai && !isStudio,
+    // Onboarding is an immersive flow with its own in-shell header/back UX.
+    // Hiding the global navbar avoids double headers and fixes mobile viewport sizing.
+    showNavbar: !isHushhAI && !isHushhAgent && !isKai && !isStudio && !isOnboarding,
     showFooter: !isHushhAI && !isHushhAgent && !isKai && !isStudio && !isOnboarding,
-    showMobileNav: !isHushhAI && !isHushhAgent && !isKai && !isStudio,
+    showMobileNav: !isHushhAI && !isHushhAgent && !isKai && !isStudio && !isOnboarding,
   };
 };
 
@@ -438,6 +441,7 @@ function App() {
     <ChakraProvider theme={theme}>
       <Router>
         <ScrollToTop />
+        <OnboardingShellAutoPadding />
         <GlobalNDAGate session={session}>
           <AppLayout />
         </GlobalNDAGate>

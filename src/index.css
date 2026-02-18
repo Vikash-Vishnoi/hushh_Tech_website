@@ -357,6 +357,8 @@ html {
   width: 100%;
   overflow: hidden !important;
   overscroll-behavior: none;
+  /* Reserved space for fixed onboarding footer; overridden per-step via JS when present. */
+  --onboarding-footer-space: calc(11rem + env(safe-area-inset-bottom, 0px));
 }
 
 .onboarding-shell main {
@@ -366,8 +368,8 @@ html {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
-  padding-bottom: calc(11rem + env(safe-area-inset-bottom, 0px)) !important;
-  scroll-padding-bottom: calc(11rem + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(var(--onboarding-footer-space) + 0.75rem) !important;
+  scroll-padding-bottom: calc(var(--onboarding-footer-space) + 0.75rem);
 }
 
 .onboarding-shell [data-onboarding-footer] {
@@ -375,7 +377,19 @@ html {
   right: auto !important;
   transform: translateX(-50%);
   width: min(100%, 500px);
-  padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px)) !important;
+  /* Override per-step Tailwind paddings for consistent mobile UX */
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+  padding-top: 0.875rem !important;
+  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+.onboarding-shell [data-onboarding-footer] [data-onboarding-cta] {
+  box-sizing: border-box;
+  height: 48px !important;
+  min-height: 48px;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
 }
 
 @media (max-width: 640px) {
@@ -391,6 +405,20 @@ html {
     border-top-right-radius: 16px;
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    padding-top: 0.75rem !important;
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .onboarding-shell [data-onboarding-footer] [data-onboarding-cta] {
+    height: 44px !important;
+    min-height: 44px;
+  }
+
+  .onboarding-shell main {
+    padding-bottom: calc(var(--onboarding-footer-space) + 0.5rem) !important;
+    scroll-padding-bottom: calc(var(--onboarding-footer-space) + 0.5rem);
   }
 }
 

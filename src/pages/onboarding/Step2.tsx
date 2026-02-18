@@ -116,7 +116,7 @@ export default function OnboardingStep2() {
       <div className="onboarding-shell relative flex min-h-screen w-full flex-col bg-white max-w-[500px] mx-auto shadow-xl overflow-hidden border-x border-slate-100">
         
         {/* Sticky Header */}
-        <header className="flex items-center px-4 pt-6 pb-4 bg-white/95 backdrop-blur-sm sticky top-0 z-10">
+        <header className="flex items-center px-4 pt-4 pb-3 sm:pt-6 sm:pb-4 bg-white/95 backdrop-blur-sm sticky top-0 z-10">
           <button 
             onClick={handleBack}
             className="flex items-center gap-1 text-slate-900 hover:text-[#2b8cee] transition-colors"
@@ -128,7 +128,7 @@ export default function OnboardingStep2() {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 flex flex-col px-6 pb-48">
+        <main className="flex-1 flex flex-col px-4 sm:px-6 pb-40 sm:pb-48">
           {/* Headline */}
           <div className="flex flex-col items-center text-center mt-2 mb-8">
             <h1 className="text-slate-900 tracking-tight text-[22px] font-extrabold leading-[1.2] max-w-[320px]">
@@ -193,14 +193,18 @@ export default function OnboardingStep2() {
 
         {/* Fixed Footer - Hidden when main footer is visible */}
         {!isFooterVisible && (
-          <div className="fixed bottom-0 left-0 right-0 z-20 w-full max-w-[500px] mx-auto bg-white border-t border-slate-100 p-6 shadow-[0_-4px_20px_rgba(0,0,0,0.03)]" data-onboarding-footer>
+          <div
+            className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-[500px] mx-auto border-t border-slate-100 bg-white/90 backdrop-blur-md px-4 sm:px-6 pt-4 sm:pt-5 pb-[calc(env(safe-area-inset-bottom)+16px)] shadow-[0_-4px_20px_rgba(0,0,0,0.04)]"
+            data-onboarding-footer
+          >
             {/* Buttons */}
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3 sm:gap-4">
               {/* Continue Button */}
               <button
                 onClick={handleContinue}
                 disabled={!selectedSource || isLoading}
-                className={`flex w-full cursor-pointer items-center justify-center rounded-full bg-[#2b8cee] py-4 text-white text-base font-bold transition-all hover:bg-blue-600 active:scale-[0.98] disabled:bg-slate-100 disabled:text-slate-400 ${
+                data-onboarding-cta
+                className={`flex w-full h-11 sm:h-12 cursor-pointer items-center justify-center rounded-full bg-[#2b8cee] px-6 text-white text-sm sm:text-base font-semibold transition-all hover:bg-[#2070c0] active:scale-[0.98] disabled:bg-slate-100 disabled:text-slate-400 ${
                   !selectedSource || isLoading ? 'disabled:cursor-not-allowed' : ''
                 }`}
               >
@@ -210,14 +214,14 @@ export default function OnboardingStep2() {
               {/* Skip Button */}
               <button
                 onClick={handleSkip}
-                className="flex w-full cursor-pointer items-center justify-center rounded-full bg-transparent py-2 text-slate-500 text-sm font-bold hover:text-slate-800 transition-colors"
+                className="flex w-full cursor-pointer items-center justify-center rounded-full bg-transparent py-2 text-slate-500 text-sm font-semibold hover:text-slate-800 transition-colors"
               >
                 Skip
               </button>
             </div>
 
             {/* Footer Note */}
-            <div className="mt-4 text-center">
+            <div className="mt-3 sm:mt-4 text-center">
               <p className="text-[10px] text-slate-400 leading-tight">
                 This helps us understand how you discovered us
               </p>

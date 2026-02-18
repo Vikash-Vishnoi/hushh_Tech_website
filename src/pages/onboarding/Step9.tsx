@@ -296,7 +296,7 @@ function OnboardingStep9() {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 flex flex-col px-6 pb-44">
+        <main className="flex-1 flex flex-col px-4 sm:px-6 pb-40 sm:pb-44">
           {/* Header Section - 22px title, 14px subtitle, center aligned */}
           <div className="mb-8 mt-2 flex flex-col items-center text-center">
             <h1 className="text-slate-900 text-[22px] font-extrabold leading-tight tracking-tight mb-2">
@@ -396,14 +396,18 @@ function OnboardingStep9() {
 
         {/* Fixed Footer - Hidden when main footer is visible (matching Step3 exactly) */}
         {!isFooterVisible && (
-          <div className="fixed bottom-0 left-0 right-0 z-20 w-full max-w-[500px] mx-auto bg-white border-t border-slate-100 p-6 shadow-[0_-4px_20px_rgba(0,0,0,0.03)]" data-onboarding-footer>
+          <div
+            className="fixed bottom-0 left-0 right-0 z-50 w-full max-w-[500px] mx-auto border-t border-slate-100 bg-white/90 backdrop-blur-md px-4 sm:px-6 pt-4 sm:pt-5 pb-[calc(env(safe-area-inset-bottom)+16px)] shadow-[0_-4px_20px_rgba(0,0,0,0.04)]"
+            data-onboarding-footer
+          >
             {/* Buttons */}
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3 sm:gap-4">
               {/* Continue Button */}
               <button
                 onClick={handleContinue}
                 disabled={!isFormValid || loading}
-                className={`flex w-full cursor-pointer items-center justify-center rounded-full bg-[#2b8cee] py-4 text-white text-base font-bold transition-all hover:bg-blue-600 active:scale-[0.98] disabled:bg-slate-100 disabled:text-slate-400 ${
+                data-onboarding-cta
+                className={`flex w-full h-11 sm:h-12 cursor-pointer items-center justify-center rounded-full bg-[#2b8cee] px-6 text-white text-sm sm:text-base font-semibold transition-all hover:bg-[#2070c0] active:scale-[0.98] disabled:bg-slate-100 disabled:text-slate-400 ${
                   !isFormValid || loading ? 'disabled:cursor-not-allowed' : ''
                 }`}
               >
@@ -414,7 +418,7 @@ function OnboardingStep9() {
               <button
                 onClick={handleSkip}
                 disabled={!canSkip || loading}
-                className={`flex w-full cursor-pointer items-center justify-center rounded-full bg-transparent py-2 text-slate-500 text-sm font-bold hover:text-slate-800 transition-colors ${
+                className={`flex w-full cursor-pointer items-center justify-center rounded-full bg-transparent py-2 text-slate-500 text-sm font-semibold hover:text-slate-800 transition-colors ${
                   !canSkip || loading ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
               >
@@ -423,7 +427,7 @@ function OnboardingStep9() {
             </div>
 
             {/* Footer Note */}
-            <div className="mt-4 text-center">
+            <div className="mt-3 sm:mt-4 text-center">
               <p className="text-[10px] text-slate-400 leading-tight">
                 Your information is encrypted and secure
               </p>

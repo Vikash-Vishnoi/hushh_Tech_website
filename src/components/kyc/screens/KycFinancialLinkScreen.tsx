@@ -662,6 +662,7 @@ const KycFinancialLinkScreen: React.FC<KycFinancialLinkScreenProps> = ({
         {plaid.step === 'done' && plaid.canProceed && (
           <Button
             w="100%"
+            data-onboarding-cta
             size="lg"
             bg={COLORS.primary}
             color="white"
@@ -689,6 +690,7 @@ const KycFinancialLinkScreen: React.FC<KycFinancialLinkScreenProps> = ({
         {!(plaid.step === 'done' && plaid.canProceed) && (
           <Button
             w="100%"
+            data-onboarding-cta
             size="lg"
             bg={buttonBg}
             color="white"
