@@ -56,7 +56,6 @@ import OnboardingStep1 from './pages/onboarding/Step1';
 import OnboardingStep2 from './pages/onboarding/Step2';
 import OnboardingStep4 from './pages/onboarding/Step4';
 import OnboardingStep5 from './pages/onboarding/Step5';
-import OnboardingStep6 from './pages/onboarding/Step6';
 import OnboardingStep7 from './pages/onboarding/Step7';
 import OnboardingStep8 from './pages/onboarding/Step8';
 import OnboardingStep9 from './pages/onboarding/Step9';
@@ -269,7 +268,7 @@ function App() {
             } />
             <Route path="/onboarding/step-6" element={
               <ProtectedRoute>
-                <OnboardingStep6 />
+                <Navigate to="/onboarding/step-5" replace />
               </ProtectedRoute>
             } />
             <Route path="/onboarding/step-7" element={

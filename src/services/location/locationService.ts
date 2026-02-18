@@ -25,7 +25,67 @@ const LOCATIONS_API = `${config.SUPABASE_URL}/functions/v1/get-locations`;
 const GEOCODE_API = `${config.SUPABASE_URL}/functions/v1/hushh-location-geocode`;
 
 // IP Geolocation fallback (free, no API key needed)
-const IP_GEO_API = 'https://ipapi.co/json/';
+// NOTE: ipapi.co is frequently blocked (403) in many environments. Use ipwho.is instead.
+const IP_GEO_API_PRIMARY = 'https://ipwho.is/';
+const IP_GEO_API_BACKUP = 'https://ipwhois.app/json/';
+
+// Reverse geocoding fallbacks (no API key required)
+const NOMINATIM_REVERSE_API = 'https://nominatim.openstreetmap.org/reverse';
+const BIGDATA_REVERSE_API = 'https://api.bigdatacloud.net/data/reverse-geocode-client';
+
+// Country code to phone dial code mapping (used when provider doesn't return calling code)
+const COUNTRY_DIAL_CODES: Record<string, string> = {
+  'US': '+1',
+  'CA': '+1',
+  'GB': '+44',
+  'UK': '+44',
+  'IN': '+91',
+  'CN': '+86',
+  'JP': '+81',
+  'AU': '+61',
+  'DE': '+49',
+  'FR': '+33',
+  'IT': '+39',
+  'ES': '+34',
+  'BR': '+55',
+  'MX': '+52',
+  'RU': '+7',
+  'KR': '+82',
+  'SA': '+966',
+  'AE': '+971',
+  'SG': '+65',
+  'HK': '+852',
+  'NZ': '+64',
+  'ZA': '+27',
+  'EG': '+20',
+  'NG': '+234',
+  'PK': '+92',
+  'BD': '+880',
+  'ID': '+62',
+  'MY': '+60',
+  'TH': '+66',
+  'VN': '+84',
+  'PH': '+63',
+  'TR': '+90',
+  'PL': '+48',
+  'NL': '+31',
+  'BE': '+32',
+  'SE': '+46',
+  'NO': '+47',
+  'DK': '+45',
+  'FI': '+358',
+  'CH': '+41',
+  'AT': '+43',
+  'PT': '+351',
+  'GR': '+30',
+  'IE': '+353',
+  'IL': '+972',
+  'AR': '+54',
+  'CL': '+56',
+  'CO': '+57',
+  'PE': '+51',
+  'VE': '+58',
+};
 
 /**
  * LocationService - Centralized service for all location-related API calls.
@@ -33,6 +93,32 @@ const IP_GEO_API = 'https://ipapi.co/json/';
  */
 export class LocationService {
   private abortController: AbortController | null = null;
+
+  private getDeviceTimezone(): string {
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+    } catch {
+      return 'UTC';
+    }
+  }
+
+  private normalizeDialCode(raw: unknown): string {
+    const str = typeof raw === 'string' ? raw : typeof raw === 'number' ? String(raw) : '';
+    const digits = str.replace(/[^\d]/g, '');
+    return digits ? `+${digits}` : '';
+  }
+
+  private getDialCodeForCountry(countryCode: string): string {
+    const code = (countryCode || '').toUpperCase();
+    return COUNTRY_DIAL_CODES[code] || '+1';
+  }
+
+  private parseIsoSubdivisionCode(value: unknown): string {
+    const str = typeof value === 'string' ? value.trim() : '';
+    if (!str) return '';
+    const last = str.includes('-') ? str.split('-').pop() : str;
+    return (last || '').toUpperCase();
+  }
 
   /** Cancel any pending requests */
   cancel(): void {
@@ -81,37 +167,64 @@ export class LocationService {
       throw new Error('Geolocation not available');
     }
 
-    return new Promise((resolve, reject) => {
-      console.log('[LocationService] Calling navigator.geolocation.getCurrentPosition...');
+    const getCurrentPosition = (opts: PositionOptions) =>
+      new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, opts);
+      });
 
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          console.log('[LocationService] GPS success:', position.coords.latitude, position.coords.longitude);
-          resolve({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          });
-        },
-        (error) => {
-          console.error('[LocationService] GPS error:', error.code, error.message);
-          if (error.code === 1) {
-            reject(new Error('Location permission denied'));
-          } else if (error.code === 2) {
-            reject(new Error('Location unavailable'));
-          } else if (error.code === 3) {
-            reject(new Error('Location timeout'));
-          } else {
-            reject(new Error(`GPS error: ${error.message}`));
-          }
-        },
-        {
-          enableHighAccuracy: false, // Use low accuracy first for faster response
-          timeout: 15000, // 15 seconds timeout
-          maximumAge: 60000, // Accept cached position up to 1 minute old
-          ...options,
-        }
-      );
-    });
+    const mapGeoError = (error: GeolocationPositionError) => {
+      console.error('[LocationService] GPS error:', error.code, error.message);
+      if (error.code === 1) return new Error('Location permission denied');
+      if (error.code === 2) return new Error('Location unavailable');
+      if (error.code === 3) return new Error('Location timeout');
+      return new Error(`GPS error: ${error.message}`);
+    };
+
+    const lowAccuracyOpts: PositionOptions = {
+      enableHighAccuracy: false,
+      timeout: 8000,
+      maximumAge: 60000,
+      ...options,
+    };
+
+    const highAccuracyOpts: PositionOptions = {
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 0,
+      ...options,
+    };
+
+    try {
+      console.log('[LocationService] Trying GPS (low accuracy)...');
+      const pos = await getCurrentPosition(lowAccuracyOpts);
+      const accuracy = pos.coords.accuracy;
+      console.log('[LocationService] GPS success (low):', pos.coords.latitude, pos.coords.longitude, 'acc:', accuracy);
+
+      // If low-accuracy result is too coarse, try high accuracy once.
+      if (typeof accuracy === 'number' && accuracy > 2000) {
+        console.log('[LocationService] GPS accuracy too coarse, trying high accuracy...');
+        const pos2 = await getCurrentPosition(highAccuracyOpts);
+        console.log('[LocationService] GPS success (high):', pos2.coords.latitude, pos2.coords.longitude, 'acc:', pos2.coords.accuracy);
+        return { latitude: pos2.coords.latitude, longitude: pos2.coords.longitude };
+      }
+
+      return { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
+    } catch (err) {
+      const geoErr = err as GeolocationPositionError;
+      // Permission denied: don't retry.
+      if (geoErr && typeof geoErr.code === 'number' && geoErr.code === 1) {
+        throw mapGeoError(geoErr);
+      }
+
+      console.warn('[LocationService] Low-accuracy GPS failed, trying high accuracy...', err);
+      try {
+        const pos2 = await getCurrentPosition(highAccuracyOpts);
+        console.log('[LocationService] GPS success (high after retry):', pos2.coords.latitude, pos2.coords.longitude, 'acc:', pos2.coords.accuracy);
+        return { latitude: pos2.coords.latitude, longitude: pos2.coords.longitude };
+      } catch (err2) {
+        throw mapGeoError(err2 as GeolocationPositionError);
+      }
+    }
   }
 
   /**
@@ -121,36 +234,73 @@ export class LocationService {
   async getLocationByIp(): Promise<LocationData> {
     console.log('[LocationService] Trying IP-based geolocation...');
 
-    this.abortController = new AbortController();
+    const tryProvider = async (url: string, parser: (data: any) => LocationData): Promise<LocationData> => {
+      this.abortController = new AbortController();
+      const response = await fetch(url, {
+        signal: this.abortController.signal,
+        headers: { 'Accept': 'application/json' },
+      });
 
-    const response = await fetch(IP_GEO_API, {
-      signal: this.abortController.signal,
-      headers: { 'Accept': 'application/json' },
-    });
+      if (!response.ok) {
+        throw new Error(`IP geolocation failed: ${response.status}`);
+      }
 
-    if (!response.ok) {
-      throw new Error(`IP geolocation failed: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log('[LocationService] IP geolocation result:', data);
-
-    // Map ipapi.co response to our LocationData format
-    const locationData: LocationData = {
-      country: data.country_name || '',
-      countryCode: data.country_code || '',
-      state: data.region || '',
-      stateCode: data.region_code || '',
-      city: data.city || '',
-      postalCode: data.postal || '',
-      phoneDialCode: data.country_calling_code || '+1',
-      timezone: data.timezone || 'UTC',
-      formattedAddress: [data.city, data.region, data.country_name].filter(Boolean).join(', '),
-      latitude: data.latitude || 0,
-      longitude: data.longitude || 0,
+      const data = await response.json();
+      return parser(data);
     };
 
-    return locationData;
+    const parseIpwhoIs = (data: any): LocationData => {
+      if (data?.success === false) {
+        throw new Error(data?.message || 'IP geolocation failed');
+      }
+
+      const countryCode = (data?.country_code || '').toString().toUpperCase();
+      const phoneDialCode =
+        this.normalizeDialCode(data?.calling_code) || this.getDialCodeForCountry(countryCode);
+
+      return {
+        country: data?.country || '',
+        countryCode,
+        state: data?.region || '',
+        stateCode: (data?.region_code || '').toString().toUpperCase(),
+        city: data?.city || '',
+        postalCode: data?.postal || '',
+        phoneDialCode,
+        timezone: data?.timezone?.id || this.getDeviceTimezone(),
+        formattedAddress: [data?.city, data?.region, data?.country].filter(Boolean).join(', '),
+        latitude: typeof data?.latitude === 'number' ? data.latitude : Number(data?.latitude) || 0,
+        longitude: typeof data?.longitude === 'number' ? data.longitude : Number(data?.longitude) || 0,
+      };
+    };
+
+    const parseIpwhoisApp = (data: any): LocationData => {
+      const countryCode = (data?.country_code || '').toString().toUpperCase();
+      const phoneDialCode = this.getDialCodeForCountry(countryCode);
+      return {
+        country: data?.country || '',
+        countryCode,
+        state: data?.region || data?.state || '',
+        stateCode: (data?.region_code || '').toString().toUpperCase(),
+        city: data?.city || '',
+        postalCode: data?.postal || '',
+        phoneDialCode,
+        timezone: data?.timezone || this.getDeviceTimezone(),
+        formattedAddress: [data?.city, data?.region, data?.country].filter(Boolean).join(', '),
+        latitude: typeof data?.latitude === 'number' ? data.latitude : Number(data?.latitude) || 0,
+        longitude: typeof data?.longitude === 'number' ? data.longitude : Number(data?.longitude) || 0,
+      };
+    };
+
+    try {
+      const loc = await tryProvider(IP_GEO_API_PRIMARY, parseIpwhoIs);
+      console.log('[LocationService] IP geolocation result (primary):', loc);
+      return loc;
+    } catch (err) {
+      console.warn('[LocationService] Primary IP provider failed, trying backup...', err);
+      const loc = await tryProvider(IP_GEO_API_BACKUP, parseIpwhoisApp);
+      console.log('[LocationService] IP geolocation result (backup):', loc);
+      return loc;
+    }
   }
 
   /**
@@ -158,26 +308,137 @@ export class LocationService {
    * Uses Google Geocoding API via Supabase Edge Function.
    */
   async geocodeCoordinates(coords: Coordinates): Promise<LocationData> {
-    this.abortController = new AbortController();
+    const providers: Array<{ name: string; run: () => Promise<LocationData> }> = [
+      {
+        name: 'supabase-geocode',
+        run: async () => {
+          this.abortController = new AbortController();
+          const response = await fetch(GEOCODE_API, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': config.SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${config.SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify(coords),
+            signal: this.abortController.signal,
+          });
 
-    const response = await fetch(GEOCODE_API, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': config.SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${config.SUPABASE_ANON_KEY}`,
+          const result: GeocodeApiResponse = await response.json();
+          if (!result.success || !result.data) {
+            throw new Error(result.error || 'Geocoding failed');
+          }
+          return result.data;
+        },
       },
-      body: JSON.stringify(coords),
-      signal: this.abortController.signal,
-    });
+      {
+        name: 'nominatim',
+        run: async () => {
+          this.abortController = new AbortController();
+          const url = `${NOMINATIM_REVERSE_API}?format=jsonv2&lat=${encodeURIComponent(
+            coords.latitude
+          )}&lon=${encodeURIComponent(coords.longitude)}&addressdetails=1`;
+          const response = await fetch(url, {
+            signal: this.abortController.signal,
+            headers: {
+              'Accept': 'application/json',
+              'Accept-Language': 'en',
+            },
+          });
+          if (!response.ok) {
+            throw new Error(`Nominatim geocoding failed: ${response.status}`);
+          }
+          const json = (await response.json()) as any;
+          const addr = json?.address || {};
 
-    const result: GeocodeApiResponse = await response.json();
+          const countryCode = (addr?.country_code || '').toString().toUpperCase();
+          const stateIso =
+            addr?.['ISO3166-2-lvl4'] ||
+            addr?.['ISO3166-2-lvl6'] ||
+            addr?.['ISO3166-2-lvl3'] ||
+            addr?.['ISO3166-2-lvl5'] ||
+            '';
 
-    if (!result.success || !result.data) {
-      throw new Error(result.error || 'Geocoding failed');
+          const stateCode = this.parseIsoSubdivisionCode(stateIso || addr?.state_code || '');
+          const city =
+            addr?.city ||
+            addr?.town ||
+            addr?.village ||
+            addr?.hamlet ||
+            addr?.suburb ||
+            addr?.county ||
+            addr?.state_district ||
+            '';
+
+          const countryNameFromCode = countryCode ? this.mapIsoCodeToCountry(countryCode) : '';
+
+          return {
+            country: addr?.country || countryNameFromCode || '',
+            countryCode,
+            state: addr?.state || addr?.region || '',
+            stateCode,
+            city,
+            postalCode: addr?.postcode || '',
+            phoneDialCode: this.getDialCodeForCountry(countryCode),
+            timezone: this.getDeviceTimezone(),
+            formattedAddress: json?.display_name || '',
+            latitude: coords.latitude,
+            longitude: coords.longitude,
+          };
+        },
+      },
+      {
+        name: 'bigdatacloud',
+        run: async () => {
+          this.abortController = new AbortController();
+          const url = `${BIGDATA_REVERSE_API}?latitude=${encodeURIComponent(
+            coords.latitude
+          )}&longitude=${encodeURIComponent(coords.longitude)}&localityLanguage=en`;
+          const response = await fetch(url, {
+            signal: this.abortController.signal,
+            headers: { 'Accept': 'application/json' },
+          });
+          if (!response.ok) {
+            throw new Error(`BigDataCloud geocoding failed: ${response.status}`);
+          }
+          const json = (await response.json()) as any;
+
+          const countryCode = (json?.countryCode || '').toString().toUpperCase();
+          const state = json?.principalSubdivision || '';
+          const stateCode = this.parseIsoSubdivisionCode(json?.principalSubdivisionCode || '');
+          const city = json?.city || json?.locality || '';
+          const postalCode = json?.postcode || '';
+
+          return {
+            country: json?.countryName || '',
+            countryCode,
+            state,
+            stateCode,
+            city,
+            postalCode,
+            phoneDialCode: this.getDialCodeForCountry(countryCode),
+            timezone: this.getDeviceTimezone(),
+            formattedAddress: [city, state, json?.countryName].filter(Boolean).join(', '),
+            latitude: coords.latitude,
+            longitude: coords.longitude,
+          };
+        },
+      },
+    ];
+
+    let lastError: unknown = null;
+    for (const provider of providers) {
+      try {
+        const data = await provider.run();
+        console.log('[LocationService] Geocode success via', provider.name);
+        return data;
+      } catch (err) {
+        lastError = err;
+        console.warn('[LocationService] Geocode provider failed:', provider.name, err);
+      }
     }
 
-    return result.data;
+    throw lastError instanceof Error ? lastError : new Error('Geocoding failed');
   }
 
   /**

@@ -108,7 +108,7 @@ export default function OnboardingStep7() {
   };
 
   const handleBack = () => {
-    navigate('/onboarding/step-6');
+    navigate('/onboarding/step-5');
   };
 
   const isValid = firstName.trim() && lastName.trim();

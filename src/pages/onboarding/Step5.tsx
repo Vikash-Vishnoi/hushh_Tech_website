@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import config from '../../resources/config/config';
 import type { AccountStructure } from '../../types/onboarding';
 import { useFooterVisibility } from '../../utils/useFooterVisibility';
+import { locationService } from '../../services/location';
 
 // Back arrow icon
 const BackIcon = () => (
@@ -11,10 +12,51 @@ const BackIcon = () => (
   </svg>
 );
 
+// Chevron down icon for select
+const ChevronDownIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 9l6 6 6-6" />
+  </svg>
+);
+
+const PHONE_DIAL_CODES = [
+  { code: '+1', label: 'United States (+1)' },
+  { code: '+91', label: 'India (+91)' },
+  { code: '+44', label: 'United Kingdom (+44)' },
+  { code: '+86', label: 'China (+86)' },
+  { code: '+81', label: 'Japan (+81)' },
+  { code: '+49', label: 'Germany (+49)' },
+  { code: '+33', label: 'France (+33)' },
+  { code: '+61', label: 'Australia (+61)' },
+  { code: '+65', label: 'Singapore (+65)' },
+  { code: '+971', label: 'UAE (+971)' },
+  { code: '+966', label: 'Saudi Arabia (+966)' },
+  { code: '+82', label: 'South Korea (+82)' },
+  { code: '+55', label: 'Brazil (+55)' },
+  { code: '+52', label: 'Mexico (+52)' },
+  { code: '+39', label: 'Italy (+39)' },
+  { code: '+34', label: 'Spain (+34)' },
+  { code: '+31', label: 'Netherlands (+31)' },
+  { code: '+7', label: 'Russia (+7)' },
+  { code: '+62', label: 'Indonesia (+62)' },
+  { code: '+60', label: 'Malaysia (+60)' },
+  { code: '+66', label: 'Thailand (+66)' },
+  { code: '+63', label: 'Philippines (+63)' },
+  { code: '+92', label: 'Pakistan (+92)' },
+  { code: '+880', label: 'Bangladesh (+880)' },
+  { code: '+27', label: 'South Africa (+27)' },
+  { code: '+234', label: 'Nigeria (+234)' },
+  { code: '+20', label: 'Egypt (+20)' },
+  { code: '+90', label: 'Turkey (+90)' },
+];
+
 export default function OnboardingStep5() {
   const navigate = useNavigate();
   const [userId, setUserId] = useState<string | null>(null);
   const [selectedStructure, setSelectedStructure] = useState<AccountStructure | null>(null);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [countryCode, setCountryCode] = useState('+1');
+  const [isAutoDetectingDialCode, setIsAutoDetectingDialCode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const isFooterVisible = useFooterVisibility();
 
@@ -37,20 +79,79 @@ export default function OnboardingStep5() {
       // Load existing data if any
       const { data: onboardingData } = await config.supabaseClient
         .from('onboarding_data')
-        .select('account_structure')
+        .select('account_structure, phone_number, phone_country_code, gps_detected_phone_dial_code, gps_location_data')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (onboardingData?.account_structure) {
         setSelectedStructure(onboardingData.account_structure as AccountStructure);
+      }
+
+      if (onboardingData?.phone_number) {
+        setPhoneNumber(String(onboardingData.phone_number).replace(/\D/g, ''));
+      }
+
+      const savedPhoneCode = onboardingData?.phone_country_code ? String(onboardingData.phone_country_code) : '';
+      const cachedDial =
+        savedPhoneCode ||
+        (onboardingData?.gps_detected_phone_dial_code ? String(onboardingData.gps_detected_phone_dial_code) : '') ||
+        ((onboardingData?.gps_location_data as any)?.phoneDialCode ? String((onboardingData.gps_location_data as any).phoneDialCode) : '');
+
+      if (cachedDial) {
+        setCountryCode(cachedDial);
+      } else {
+        // No cached dial code yet: use IP location (no permission prompt) and cache it for later steps.
+        setIsAutoDetectingDialCode(true);
+        try {
+          const ipLoc = await locationService.getLocationByIp();
+          if (ipLoc?.phoneDialCode) {
+            setCountryCode(ipLoc.phoneDialCode);
+          }
+          if (!onboardingData?.gps_location_data) {
+            try {
+              await locationService.saveLocationToOnboarding(user.id, ipLoc);
+            } catch (saveErr) {
+              console.warn('[Step5] Failed to cache IP location:', saveErr);
+            }
+          }
+        } catch (err) {
+          console.warn('[Step5] IP dial code detection failed:', err);
+        } finally {
+          setIsAutoDetectingDialCode(false);
+        }
       }
     };
 
     getCurrentUser();
   }, [navigate]);
 
+  const formatPhoneNumber = (value: string) => {
+    const digits = value.replace(/\D/g, '');
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+    if (digits.length <= 10) return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+    return digits;
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '');
+    if (value.length <= 15) {
+      setPhoneNumber(value);
+    }
+  };
+
+  const isValidPhone = phoneNumber.length >= 8 && phoneNumber.length <= 15;
+  const canContinue = Boolean(selectedStructure) && isValidPhone;
+
+  const dialCodeOptions = useMemo(() => {
+    if (countryCode && !PHONE_DIAL_CODES.some((c) => c.code === countryCode)) {
+      return [{ code: countryCode, label: `Custom (${countryCode})` }, ...PHONE_DIAL_CODES];
+    }
+    return PHONE_DIAL_CODES;
+  }, [countryCode]);
+
   const handleContinue = async () => {
-    if (!selectedStructure || !userId || !config.supabaseClient) return;
+    if (!selectedStructure || !userId || !config.supabaseClient || !isValidPhone) return;
 
     setIsLoading(true);
     try {
@@ -58,12 +159,14 @@ export default function OnboardingStep5() {
         .from('onboarding_data')
         .update({
           account_structure: selectedStructure,
+          phone_number: phoneNumber,
+          phone_country_code: countryCode,
           current_step: 5,
           updated_at: new Date().toISOString(),
         })
         .eq('user_id', userId);
 
-      navigate('/onboarding/step-6');
+      navigate('/onboarding/step-7');
     } catch (error) {
       console.error('Error:', error);
     } finally {
@@ -98,11 +201,15 @@ export default function OnboardingStep5() {
           {/* Header Section */}
           <div className="mb-8 text-center">
             <h1 className="text-slate-900 text-[22px] font-bold leading-tight tracking-tight">
-              What type of general account would you like to open?
+              A few more details
             </h1>
+            <p className="text-slate-500 text-[14px] font-normal leading-relaxed mt-2">
+              This helps us personalize your account and keep your profile secure.
+            </p>
           </div>
 
           {/* Account Options Card */}
+          <h2 className="text-slate-900 text-base font-bold mb-3">Account type</h2>
           <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.04)] overflow-hidden">
             {/* Individual Account Option */}
             <button
@@ -142,6 +249,54 @@ export default function OnboardingStep5() {
               </div>
             </button>
           </div>
+
+          {/* Phone Number */}
+          <div className="mt-8">
+            <div className="flex items-center justify-between gap-3 mb-2">
+              <h2 className="text-slate-900 text-base font-bold">Phone number</h2>
+              {isAutoDetectingDialCode && (
+                <span className="text-xs font-semibold text-slate-400">Detecting code...</span>
+              )}
+            </div>
+            <p className="text-slate-500 text-sm leading-relaxed mb-4">
+              We'll use this to verify your identity when needed.
+            </p>
+
+            <div className="flex w-full items-center gap-3">
+              {/* Country Code Selector */}
+              <div className="relative h-14 w-[150px] flex-shrink-0">
+                <select
+                  value={countryCode}
+                  onChange={(e) => setCountryCode(e.target.value)}
+                  className="h-full w-full appearance-none rounded-full border border-gray-200 bg-white pl-4 pr-8 text-sm font-semibold text-slate-900 focus:border-[#2b8cee] focus:outline-none focus:ring-1 focus:ring-[#2b8cee] cursor-pointer"
+                >
+                  {dialCodeOptions.map((country) => (
+                    <option key={`${country.label}-${country.code}`} value={country.code}>
+                      {country.label}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-500">
+                  <ChevronDownIcon />
+                </div>
+              </div>
+
+              {/* Phone Number Input */}
+              <div className="relative h-14 flex-1">
+                <input
+                  type="tel"
+                  value={formatPhoneNumber(phoneNumber)}
+                  onChange={handlePhoneChange}
+                  placeholder="(555) 000-0000"
+                  className="h-full w-full rounded-full border border-gray-200 bg-white px-5 text-base font-semibold text-slate-900 placeholder:text-slate-400 focus:border-[#2b8cee] focus:outline-none focus:ring-1 focus:ring-[#2b8cee] transition-all"
+                />
+              </div>
+            </div>
+
+            <p className="px-2 text-xs font-medium text-slate-400 mt-2">
+              Standard message and data rates may apply.
+            </p>
+          </div>
         </main>
 
         {/* Fixed Footer - Hidden when main footer is visible */}
@@ -155,10 +310,10 @@ export default function OnboardingStep5() {
               {/* Continue Button */}
               <button
                 onClick={handleContinue}
-                disabled={!selectedStructure || isLoading}
+                disabled={!canContinue || isLoading}
                 data-onboarding-cta
                 className={`flex w-full h-11 sm:h-12 cursor-pointer items-center justify-center rounded-full px-6 text-sm sm:text-base font-semibold transition-all active:scale-[0.98] ${
-                  selectedStructure && !isLoading
+                  canContinue && !isLoading
                     ? 'bg-[#2b8cee] text-white hover:bg-[#2070c0] shadow-md shadow-[#2b8cee]/20'
                     : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                 }`}
