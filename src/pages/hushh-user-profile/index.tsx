@@ -676,6 +676,44 @@ const HushhUserProfilePage: React.FC = () => {
     "mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-slate-500";
   const cardClassName =
     "rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5";
+  const aiFieldCardTones = [
+    "border-blue-100 bg-blue-50/50",
+    "border-emerald-100 bg-emerald-50/50",
+    "border-purple-100 bg-purple-50/45",
+    "border-orange-100 bg-orange-50/45",
+    "border-indigo-100 bg-indigo-50/45",
+    "border-cyan-100 bg-cyan-50/45",
+  ];
+
+  const getConfidenceLabel = (confidence: number) => {
+    if (confidence >= 0.7) return "High";
+    if (confidence >= 0.4) return "Medium";
+    return "Low";
+  };
+
+  const getConfidenceBadgeClass = (confidence: number) => {
+    if (confidence >= 0.7) {
+      return "border-emerald-200 bg-emerald-50 text-emerald-700";
+    }
+    if (confidence >= 0.4) {
+      return "border-amber-200 bg-amber-50 text-amber-700";
+    }
+    return "border-slate-200 bg-white/80 text-slate-600";
+  };
+
+  const shadowConfidenceLabel = shadowProfile ? getConfidenceLabel(shadowProfile.confidence || 0) : "Low";
+  const shadowLifestyleTags: string[] = shadowProfile
+    ? [
+        shadowProfile.diet ? `Diet: ${shadowProfile.diet}` : "",
+        ...(shadowProfile.hobbies || []).slice(0, 3),
+        ...(shadowProfile.coffeePreferences || []).slice(0, 2).map((pref) => `Coffee: ${pref}`),
+        ...(shadowProfile.chaiPreferences || []).slice(0, 1).map((pref) => `Chai: ${pref}`),
+        ...(shadowProfile.drinkPreferences || []).slice(0, 2),
+      ].filter(Boolean)
+    : [];
+  const shadowBrandTags: string[] = shadowProfile ? (shadowProfile.brands || []).slice(0, 6) : [];
+  const shadowKnownForTags: string[] = shadowProfile ? (shadowProfile.knownFor || []).slice(0, 4) : [];
+  const shadowAssociates = shadowProfile ? (shadowProfile.associates || []).slice(0, 5) : [];
 
   return (
     <div
@@ -1154,10 +1192,10 @@ const HushhUserProfilePage: React.FC = () => {
 
           {/* AI Generated Investor Profile Section */}
           {investorProfile && (
-            <section className={cardClassName}>
-              <div className="mb-5 flex items-center justify-between">
+            <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="mb-4 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-[#3A63B8]">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50 text-purple-600">
                     <Brain className="h-5 w-5" />
                   </div>
                   <h3 className="text-lg font-bold text-slate-900">AI-Generated Investor Profile</h3>
@@ -1172,157 +1210,139 @@ const HushhUserProfilePage: React.FC = () => {
                   Edit
                 </button>
               </div>
-              <p className="mb-4 text-sm text-slate-500">
+
+              <p className="mb-5 text-sm leading-snug text-slate-500">
                 Based on your information, our AI has analyzed your investment preferences:
               </p>
-              <div className="space-y-3">
-                {Object.entries(investorProfile).map(([fieldName, fieldData]: [string, any]) => {
+
+              <div className="space-y-4">
+                {Object.entries(investorProfile).map(([fieldName, fieldData]: [string, any], index) => {
                   const label = FIELD_LABELS[fieldName as keyof typeof FIELD_LABELS] || fieldName;
                   const valueText = Array.isArray(fieldData.value)
-                    ? fieldData.value.map((v: string) => VALUE_LABELS[v as keyof typeof VALUE_LABELS] || v).join(", ")
-                    : VALUE_LABELS[fieldData.value as keyof typeof VALUE_LABELS] || fieldData.value;
+                    ? fieldData.value
+                        .map((v: string) => VALUE_LABELS[v as keyof typeof VALUE_LABELS] || v)
+                        .join(', ')
+                    : VALUE_LABELS[fieldData.value as keyof typeof VALUE_LABELS] || fieldData.value || 'Not available';
                   const confidence = fieldData.confidence || 0;
-                  const confidenceLabel = confidence >= 0.7 ? "High" : confidence >= 0.4 ? "Medium" : "Low";
-                  const confidenceColor = confidence >= 0.7 ? "#22C55E" : confidence >= 0.4 ? "#F59E0B" : "#9CA3AF";
-                  const confidenceWidth = `${Math.round(confidence * 100)}%`;
+                  const confidenceLabel = getConfidenceLabel(confidence);
+                  const confidenceBadgeClass = getConfidenceBadgeClass(confidence);
+                  const toneClass = aiFieldCardTones[index % aiFieldCardTones.length];
                   const isEditing = editingField === fieldName;
                   const isMultiSelect = MULTI_SELECT_FIELDS.includes(fieldName);
                   const fieldOptions = FIELD_OPTIONS[fieldName] || [];
 
-                  // Get icon based on field name
                   const getIcon = () => {
                     switch (fieldName) {
-                      case "primary_goal": return <Target className="w-5 h-5 text-[#3A63B8]" />;
-                      case "investment_horizon_years": return <Clock className="w-5 h-5 text-[#3A63B8]" />;
-                      case "risk_tolerance": return <Gauge className="w-5 h-5 text-[#3A63B8]" />;
-                      case "liquidity_need": return <Droplets className="w-5 h-5 text-[#3A63B8]" />;
-                      case "experience_level": return <Briefcase className="w-5 h-5 text-[#3A63B8]" />;
-                      case "asset_class_preference": return <Layers className="w-5 h-5 text-[#3A63B8]" />;
-                      case "typical_ticket_size": return <Zap className="w-5 h-5 text-[#3A63B8]" />;
-                      case "engagement_style": return <Activity className="w-5 h-5 text-[#3A63B8]" />;
-                      default: return <TrendingUp className="w-5 h-5 text-[#3A63B8]" />;
+                      case 'primary_goal':
+                        return <Target className="w-5 h-5 text-[#3A63B8]" />;
+                      case 'investment_horizon_years':
+                        return <Clock className="w-5 h-5 text-[#3A63B8]" />;
+                      case 'risk_tolerance':
+                        return <Gauge className="w-5 h-5 text-[#3A63B8]" />;
+                      case 'liquidity_need':
+                        return <Droplets className="w-5 h-5 text-[#3A63B8]" />;
+                      case 'experience_level':
+                        return <Briefcase className="w-5 h-5 text-[#3A63B8]" />;
+                      case 'asset_class_preference':
+                        return <Layers className="w-5 h-5 text-[#3A63B8]" />;
+                      case 'typical_ticket_size':
+                        return <Zap className="w-5 h-5 text-[#3A63B8]" />;
+                      case 'engagement_style':
+                        return <Activity className="w-5 h-5 text-[#3A63B8]" />;
+                      default:
+                        return <TrendingUp className="w-5 h-5 text-[#3A63B8]" />;
                     }
                   };
 
-                  // Get current values as array for multi-select
-                  const currentValues: string[] = Array.isArray(fieldData.value) 
-                    ? fieldData.value 
+                  const currentValues: string[] = Array.isArray(fieldData.value)
+                    ? fieldData.value
                     : [fieldData.value];
 
                   return (
-                    <div 
-                      key={fieldName}
-                      className="bg-[#F9FAFB] rounded-xl p-4 border border-[#E5E7EB]"
-                    >
-                      <div className="flex items-start gap-3">
-                        {getIcon()}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-sm font-medium text-[#111827]">{label}</span>
-                            <div className="flex items-center gap-2">
-                              <span 
-                                className="text-xs font-medium px-2 py-0.5 rounded-full"
-                                style={{ 
-                                  backgroundColor: `${confidenceColor}15`,
-                                  color: confidenceColor 
-                                }}
-                              >
-                                {confidenceLabel}
-                              </span>
-                              {!isEditing && (
-                                <button
-                                  type="button"
-                                  onClick={() => setEditingField(fieldName)}
-                                  className="rounded p-1 text-[#6B7280] transition-colors hover:bg-blue-50 hover:text-[#3A63B8]"
-                                  aria-label={`Edit ${label}`}
-                                >
-                                  <Edit2 className="w-3.5 h-3.5" />
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                          
-                          {/* Edit Mode */}
-                          {isEditing ? (
-                            <div className="mt-2">
-                              {isMultiSelect ? (
-                                // Multi-select checkboxes
-                                <div className="space-y-2">
-                                  {fieldOptions.map((option) => (
-                                    <label 
-                                      key={option.value}
-                                      className="flex items-center gap-2 cursor-pointer"
-                                    >
-                                      <input
-                                        type="checkbox"
-                                        checked={currentValues.includes(option.value)}
-                                        onChange={() => handleMultiSelectToggle(fieldName, option.value)}
-                                        className="h-4 w-4 rounded border-gray-300 text-[#3A63B8] focus:ring-[#3A63B8]"
-                                      />
-                                      <span className="text-sm text-[#374151]">{option.label}</span>
-                                    </label>
-                                  ))}
-                                  <button
-                                    type="button"
-                                    onClick={() => setEditingField(null)}
-                                    className="mt-2 rounded-lg bg-[#3A63B8] px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-[#2f539f]"
-                                  >
-                                    Done
-                                  </button>
-                                </div>
-                              ) : (
-                                // Single-select dropdown
-                                <div className="space-y-2">
-                                  <div className="relative">
-                                    <select
-                                      value={fieldData.value}
-                                      onChange={(e) => handleUpdateAIField(fieldName, e.target.value)}
-                                      className="w-full appearance-none rounded-lg border border-[#E5E7EB] bg-white px-3 py-2 pr-8 text-sm text-[#111827] outline-none focus:border-[#3A63B8] focus:ring-2 focus:ring-[#3A63B8]/20"
-                                    >
-                                      {fieldOptions.map((option) => (
-                                        <option key={option.value} value={option.value}>
-                                          {option.label}
-                                        </option>
-                                      ))}
-                                    </select>
-                                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
-                                  </div>
-                                  <button
-                                    type="button"
-                                    onClick={() => setEditingField(null)}
-                                    className="px-3 py-1.5 text-sm font-medium text-[#6B7280] transition-colors hover:text-[#111827]"
-                                  >
-                                    Cancel
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          ) : (
-                            // Display Mode
-                            <>
-                              <p className="text-sm text-[#374151] mb-2">{valueText}</p>
-                              
-                              {/* Confidence bar */}
-                              <div className="h-1.5 bg-[#E5E7EB] rounded-full overflow-hidden">
-                                <div 
-                                  className="h-full rounded-full transition-all duration-500"
-                                  style={{ 
-                                    width: confidenceWidth,
-                                    backgroundColor: confidenceColor 
-                                  }}
-                                />
-                              </div>
-                              
-                              {/* AI Rationale */}
-                              {fieldData.rationale && (
-                                <p className="text-xs text-[#6B7280] mt-2 italic">
-                                  AI note: {fieldData.rationale}
-                                </p>
-                              )}
-                            </>
+                    <div key={fieldName} className={`rounded-xl border p-4 shadow-sm ${toneClass}`}>
+                      <div className="mb-2 flex items-start justify-between gap-3">
+                        <div className="flex min-w-0 items-start gap-2.5">
+                          {getIcon()}
+                          <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500">{label}</h4>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className={`inline-flex items-center rounded border px-2 py-0.5 text-[10px] font-medium ${confidenceBadgeClass}`}>
+                            Confidence: {confidenceLabel}
+                          </span>
+                          {!isEditing && (
+                            <button
+                              type="button"
+                              onClick={() => setEditingField(fieldName)}
+                              className="rounded p-1 text-[#6B7280] transition-colors hover:bg-blue-50 hover:text-[#3A63B8]"
+                              aria-label={`Edit ${label}`}
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
                           )}
                         </div>
                       </div>
+
+                      {isEditing ? (
+                        <div className="mt-2">
+                          {isMultiSelect ? (
+                            <div className="space-y-2">
+                              {fieldOptions.map((option) => (
+                                <label key={option.value} className="flex cursor-pointer items-center gap-2">
+                                  <input
+                                    type="checkbox"
+                                    checked={currentValues.includes(option.value)}
+                                    onChange={() => handleMultiSelectToggle(fieldName, option.value)}
+                                    className="h-4 w-4 rounded border-gray-300 text-[#3A63B8] focus:ring-[#3A63B8]"
+                                  />
+                                  <span className="text-sm text-[#374151]">{option.label}</span>
+                                </label>
+                              ))}
+                              <button
+                                type="button"
+                                onClick={() => setEditingField(null)}
+                                className="mt-2 rounded-lg bg-[#3A63B8] px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-[#2f539f]"
+                              >
+                                Done
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="space-y-2">
+                              <div className="relative">
+                                <select
+                                  value={fieldData.value}
+                                  onChange={(e) => handleUpdateAIField(fieldName, e.target.value)}
+                                  className="w-full appearance-none rounded-lg border border-[#E5E7EB] bg-white px-3 py-2 pr-8 text-sm text-[#111827] outline-none focus:border-[#3A63B8] focus:ring-2 focus:ring-[#3A63B8]/20"
+                                >
+                                  {fieldOptions.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                      {option.label}
+                                    </option>
+                                  ))}
+                                </select>
+                                <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setEditingField(null)}
+                                className="px-3 py-1.5 text-sm font-medium text-[#6B7280] transition-colors hover:text-[#111827]"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <>
+                          <p className="mb-2 text-base font-bold text-slate-900">{valueText}</p>
+                          {fieldData.rationale && (
+                            <div className="rounded-lg border border-white/60 bg-white/65 p-3">
+                              <p className="text-sm text-slate-600">
+                                <span className="font-semibold text-[#3A63B8]">AI insight:</span> {fieldData.rationale}
+                              </p>
+                            </div>
+                          )}
+                        </>
+                      )}
                     </div>
                   );
                 })}
@@ -1332,251 +1352,264 @@ const HushhUserProfilePage: React.FC = () => {
 
           {/* Shadow Investigator Deep Profile Section */}
           {shadowProfile && (
-            <section className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-5 shadow-lg border border-slate-700">
-              <div className="flex items-center justify-between mb-5">
+            <section className="group relative overflow-hidden rounded-[2rem] border border-indigo-100/80 bg-white/70 p-6 shadow-[0_15px_40px_rgba(31,38,135,0.1)] backdrop-blur-xl">
+              <div className="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full bg-gradient-to-br from-indigo-400/20 to-blue-400/10 blur-3xl" />
+              <div className="pointer-events-none absolute -bottom-20 -left-16 h-72 w-72 rounded-full bg-cyan-300/10 blur-3xl" />
+
+              <div className="relative z-10 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <Search className="w-6 h-6 text-purple-400" />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/50 bg-white text-[#3A63B8] shadow-lg">
+                    <Brain className="h-6 w-6" />
+                  </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-white">Deep Profile Intelligence</h3>
-                    <p className="text-xs text-slate-400">Powered by Shadow Investigator AI</p>
+                    <h3 className="text-xl font-bold leading-tight text-slate-900">Deep Profile Intelligence</h3>
+                    <p className="text-xs font-bold uppercase tracking-wide text-[#3A63B8]/90">
+                      Powered by Shadow Investigator AI
+                    </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span 
-                    className="text-xs font-medium px-3 py-1 rounded-full bg-purple-500/20 text-purple-300"
-                  >
-                    {Math.round((shadowProfile.confidence || 0) * 100)}% Confidence
-                  </span>
+                <div className="rounded-full border border-slate-200 bg-white/70 px-3 py-1 text-[11px] font-semibold text-slate-700 shadow-sm">
+                  {Math.round((shadowProfile.confidence || 0) * 100)}% Confidence
                 </div>
               </div>
 
-              {/* Identity Section */}
-              <div className="mb-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <User className="w-4 h-4 text-blue-400" />
-                  <span className="text-sm font-medium text-blue-300">Identity & Demographics</span>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  {shadowProfile.age && (
-                    <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700">
-                      <span className="text-xs text-slate-400">Age</span>
-                      <p className="text-sm text-white font-medium">{shadowProfile.age}</p>
+              <div className="relative z-10 mt-6 space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-bold uppercase tracking-wider text-slate-700">Identity &amp; Demographics</h4>
+                    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700">
+                      <Check className="h-3.5 w-3.5" />
+                      {shadowConfidenceLabel}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="w-full max-w-[320px] rounded-2xl border border-indigo-100 bg-white/70 p-5 text-center shadow-sm">
+                      <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-100 to-blue-100 text-indigo-600">
+                        <User className="h-5 w-5" />
+                      </div>
+                      <span className="mb-1 block text-[11px] font-bold uppercase tracking-widest text-slate-500">Age</span>
+                      <p className="bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-500 bg-clip-text text-4xl font-bold text-transparent">
+                        {shadowProfile.age || '--'}
+                      </p>
                       {shadowProfile.ageContext && (
-                        <p className="text-xs text-slate-500 mt-1">{shadowProfile.ageContext}</p>
+                        <div className="mt-3 border-t border-indigo-100 pt-3">
+                          <p className="text-[12px] font-medium leading-relaxed text-slate-600">{shadowProfile.ageContext}</p>
+                        </div>
                       )}
                     </div>
-                  )}
-                  {shadowProfile.occupation && (
-                    <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700">
-                      <span className="text-xs text-slate-400">Occupation</span>
-                      <p className="text-sm text-white font-medium">{shadowProfile.occupation}</p>
-                    </div>
-                  )}
-                  {shadowProfile.nationality && (
-                    <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700">
-                      <span className="text-xs text-slate-400">Nationality</span>
-                      <p className="text-sm text-white font-medium">{shadowProfile.nationality}</p>
-                    </div>
-                  )}
-                  {shadowProfile.maritalStatus && (
-                    <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700">
-                      <span className="text-xs text-slate-400">Marital Status</span>
-                      <p className="text-sm text-white font-medium">{shadowProfile.maritalStatus}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
 
-              {/* Net Worth Section */}
-              {shadowProfile.netWorthScore > 0 && (
-                <div className="mb-5 bg-gradient-to-r from-amber-500/10 to-yellow-500/10 rounded-xl p-4 border border-amber-500/20">
-                  <div className="flex items-center gap-2 mb-2">
-                    <TrendingUp className="w-4 h-4 text-amber-400" />
-                    <span className="text-sm font-medium text-amber-300">Wealth Analysis</span>
+                    <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-3">
+                      <div className="rounded-xl border border-slate-200 bg-white/60 p-3 text-center shadow-sm">
+                        <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                          <Briefcase className="h-4 w-4" />
+                        </div>
+                        <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-500">Occupation</span>
+                        <p className="text-[12px] font-bold text-slate-800">{shadowProfile.occupation || 'Not available'}</p>
+                      </div>
+                      <div className="rounded-xl border border-slate-200 bg-white/60 p-3 text-center shadow-sm">
+                        <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-orange-50 text-orange-600">
+                          <Globe className="h-4 w-4" />
+                        </div>
+                        <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-500">Nationality</span>
+                        <p className="text-[13px] font-bold text-slate-800">{shadowProfile.nationality || 'Not available'}</p>
+                      </div>
+                      <div className="rounded-xl border border-slate-200 bg-white/60 p-3 text-center shadow-sm">
+                        <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-pink-50 text-pink-600">
+                          <Heart className="h-4 w-4" />
+                        </div>
+                        <span className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-500">Status</span>
+                        <p className="text-[13px] font-bold text-slate-800">{shadowProfile.maritalStatus || 'Not available'}</p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <div className="flex-1">
-                      <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-gradient-to-r from-amber-400 to-yellow-400 rounded-full transition-all duration-500"
-                          style={{ width: `${Math.min(shadowProfile.netWorthScore, 100)}%` }}
+                </div>
+
+                {shadowProfile.netWorthScore > 0 && (
+                  <div className="rounded-xl border-l-4 border-l-emerald-500 bg-white/65 p-5 shadow-sm">
+                    <div className="mb-3 flex items-center justify-between">
+                      <h4 className="text-sm font-bold uppercase tracking-wide text-slate-700">Wealth Analysis</h4>
+                      <span className="rounded border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-700">
+                        Score: {shadowProfile.netWorthScore}/100
+                      </span>
+                    </div>
+                    <div className="relative pt-1">
+                      <div className="mb-2 flex justify-between px-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                        <span>Low</span>
+                        <span>High</span>
+                        <span className="text-emerald-600">Ultra High</span>
+                      </div>
+                      <div className="h-3 w-full overflow-hidden rounded-full bg-slate-200 shadow-inner">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 transition-all"
+                          style={{ width: `${Math.min(Math.max(shadowProfile.netWorthScore, 0), 100)}%` }}
                         />
                       </div>
                     </div>
-                    <span className="text-lg font-bold text-amber-400">{shadowProfile.netWorthScore}/100</span>
+                    {shadowProfile.netWorthContext && (
+                      <p className="mt-3 rounded-lg bg-white/70 p-2 text-xs font-medium leading-relaxed text-slate-600">
+                        <span className="font-bold text-emerald-700">Insight:</span> {shadowProfile.netWorthContext}
+                      </p>
+                    )}
                   </div>
-                  {shadowProfile.netWorthContext && (
-                    <p className="text-xs text-amber-200/70 mt-2">{shadowProfile.netWorthContext}</p>
-                  )}
-                </div>
-              )}
+                )}
 
-              {/* Lifestyle Preferences */}
-              <div className="mb-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <Heart className="w-4 h-4 text-pink-400" />
-                  <span className="text-sm font-medium text-pink-300">Lifestyle & Preferences</span>
-                </div>
-                <div className="space-y-2">
-                  {shadowProfile.diet && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="text-slate-400">Diet:</span>
-                      <span className="text-white">{shadowProfile.diet}</span>
-                    </div>
-                  )}
-                  {shadowProfile.hobbies && shadowProfile.hobbies.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {shadowProfile.hobbies.map((hobby, idx) => (
-                        <span key={idx} className="text-xs px-2 py-1 bg-pink-500/20 text-pink-300 rounded-full">
-                          {hobby}
+                {shadowLifestyleTags.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="pl-1 text-xs font-bold uppercase tracking-widest text-slate-500">Lifestyle &amp; Preferences</h4>
+                    <div className="flex flex-wrap gap-2.5">
+                      {shadowLifestyleTags.map((tag, idx) => (
+                        <span
+                          key={`${tag}-${idx}`}
+                          className="rounded-2xl border border-white/60 bg-white/60 px-4 py-2 text-xs font-bold text-slate-800 shadow-sm backdrop-blur-sm transition-transform hover:scale-[1.03]"
+                        >
+                          {tag}
                         </span>
                       ))}
                     </div>
-                  )}
-                  {shadowProfile.brands && shadowProfile.brands.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {shadowProfile.brands.map((brand, idx) => (
-                        <span key={idx} className="text-xs px-2 py-1 bg-blue-500/20 text-blue-300 rounded-full">
+                  </div>
+                )}
+
+                {shadowBrandTags.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="pl-1 text-xs font-bold uppercase tracking-widest text-slate-500">Brands &amp; Interests</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {shadowBrandTags.map((brand, idx) => (
+                        <span
+                          key={`${brand}-${idx}`}
+                          className="rounded-xl border border-white/60 bg-white/60 px-4 py-2 text-xs font-bold text-slate-700 shadow-sm"
+                        >
                           {brand}
                         </span>
                       ))}
                     </div>
-                  )}
-                </div>
-              </div>
+                  </div>
+                )}
 
-              {/* Coffee & Beverage Preferences */}
-              {(shadowProfile.coffeePreferences?.length > 0 || shadowProfile.drinkPreferences?.length > 0) && (
-                <div className="mb-5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Coffee className="w-4 h-4 text-orange-400" />
-                    <span className="text-sm font-medium text-orange-300">Beverage Preferences</span>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {shadowProfile.coffeePreferences?.map((pref, idx) => (
-                      <span key={`coffee-${idx}`} className="text-xs px-2 py-1 bg-orange-500/20 text-orange-300 rounded-full">
-                        ☕ {pref}
-                      </span>
-                    ))}
-                    {shadowProfile.drinkPreferences?.map((pref, idx) => (
-                      <span key={`drink-${idx}`} className="text-xs px-2 py-1 bg-cyan-500/20 text-cyan-300 rounded-full">
-                        🍸 {pref}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Known For */}
-              {shadowProfile.knownFor && shadowProfile.knownFor.length > 0 && (
-                <div className="mb-5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Zap className="w-4 h-4 text-yellow-400" />
-                    <span className="text-sm font-medium text-yellow-300">Known For</span>
-                  </div>
-                  <div className="space-y-2">
-                    {shadowProfile.knownFor.map((item, idx) => (
-                      <div key={idx} className="bg-yellow-500/10 rounded-lg p-2 border border-yellow-500/20">
-                        <p className="text-sm text-yellow-100">{item}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Associates / Network */}
-              {shadowProfile.associates && shadowProfile.associates.length > 0 && (
-                <div className="mb-5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Users className="w-4 h-4 text-green-400" />
-                    <span className="text-sm font-medium text-green-300">Key Network</span>
-                  </div>
-                  <div className="space-y-2">
-                    {shadowProfile.associates.slice(0, 5).map((associate, idx) => (
-                      <div key={idx} className="flex items-center justify-between bg-slate-800/50 rounded-lg p-2 border border-slate-700">
-                        <div>
-                          <p className="text-sm text-white font-medium">{associate.name}</p>
-                          <p className="text-xs text-slate-400">{associate.relation}</p>
-                        </div>
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${
-                          associate.category === 'INNER' ? 'bg-green-500/20 text-green-300' :
-                          associate.category === 'ORBIT' ? 'bg-blue-500/20 text-blue-300' :
-                          associate.category === 'MEDIA' ? 'bg-purple-500/20 text-purple-300' :
-                          'bg-red-500/20 text-red-300'
-                        }`}>
-                          {associate.category}
+                {shadowKnownForTags.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="pl-1 text-xs font-bold uppercase tracking-widest text-slate-500">Known For</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {shadowKnownForTags.map((item, idx) => (
+                        <span
+                          key={`${item}-${idx}`}
+                          className="rounded-xl border border-white/60 bg-white/60 px-4 py-2 text-xs font-bold text-slate-700 shadow-sm"
+                        >
+                          {item}
                         </span>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Recent News */}
-              {shadowProfile.news && shadowProfile.news.length > 0 && (
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Newspaper className="w-4 h-4 text-indigo-400" />
-                    <span className="text-sm font-medium text-indigo-300">Recent News & Media</span>
-                  </div>
-                  <div className="space-y-2">
-                    {shadowProfile.news.slice(0, 3).map((news, idx) => (
-                      <div key={idx} className="bg-indigo-500/10 rounded-lg p-3 border border-indigo-500/20">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs text-indigo-300">{news.source}</span>
-                          <span className="text-xs text-slate-500">{news.date}</span>
-                        </div>
-                        <p className="text-sm text-white font-medium">{news.title}</p>
-                        {news.summary && (
-                          <p className="text-xs text-slate-400 mt-1">{news.summary}</p>
+                {shadowAssociates.length > 0 && (
+                  <div className="rounded-2xl border border-slate-200 bg-white/60 p-4 shadow-sm">
+                    <div className="mb-3 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-indigo-500" />
+                        <h4 className="text-xs font-bold uppercase tracking-wide text-slate-700">Key Network</h4>
+                      </div>
+                      <span className="rounded-md bg-white/70 px-2 py-0.5 text-[10px] text-slate-500">High Value Connections</span>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="flex -space-x-3">
+                        {shadowAssociates.slice(0, 3).map((associate, idx) => {
+                          const initials = associate.name
+                            .split(' ')
+                            .filter(Boolean)
+                            .map((part) => part.charAt(0))
+                            .join('')
+                            .slice(0, 3)
+                            .toUpperCase();
+
+                          return (
+                            <div
+                              key={`${associate.name}-${idx}`}
+                              className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-gradient-to-br from-blue-600 to-indigo-700 text-[10px] font-bold text-white shadow-md"
+                            >
+                              {initials || 'N/A'}
+                            </div>
+                          );
+                        })}
+                        {shadowProfile.associates.length > 3 && (
+                          <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-slate-100 text-[10px] font-bold text-slate-500 shadow-sm">
+                            +{shadowProfile.associates.length - 3}
+                          </div>
                         )}
                       </div>
-                    ))}
+                      <p className="text-sm font-bold leading-tight text-slate-800">
+                        Strategic contacts and partners
+                        <span className="block text-xs font-normal text-slate-500">Verified from public network signals</span>
+                      </p>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Social Media Links */}
-              {shadowProfile.socialMedia && shadowProfile.socialMedia.length > 0 && (
-                <div className="mt-5 pt-4 border-t border-slate-700">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Globe className="w-4 h-4 text-cyan-400" />
-                    <span className="text-sm font-medium text-cyan-300">Social Profiles</span>
+                {shadowProfile.news && shadowProfile.news.length > 0 && (
+                  <div className="rounded-2xl border border-slate-200 bg-white/60 p-4 shadow-sm">
+                    <div className="mb-3 flex items-center gap-2">
+                      <Newspaper className="h-4 w-4 text-indigo-500" />
+                      <span className="text-xs font-bold uppercase tracking-wide text-slate-700">Recent News &amp; Media</span>
+                    </div>
+                    <div className="space-y-2">
+                      {shadowProfile.news.slice(0, 3).map((news, idx) => (
+                        <div key={idx} className="rounded-lg border border-slate-200 bg-white/70 p-3">
+                          <div className="mb-1 flex items-center justify-between">
+                            <span className="text-xs font-medium text-slate-500">{news.source}</span>
+                            <span className="text-xs text-slate-400">{news.date}</span>
+                          </div>
+                          <p className="text-sm font-semibold text-slate-800">{news.title}</p>
+                          {news.summary && <p className="mt-1 text-xs text-slate-500">{news.summary}</p>}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {shadowProfile.socialMedia.map((social, idx) => (
-                      <a
-                        key={idx}
-                        href={social.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs px-3 py-1.5 bg-cyan-500/20 text-cyan-300 rounded-full hover:bg-cyan-500/30 transition-colors"
-                      >
-                        {social.platform}
-                      </a>
-                    ))}
+                )}
+
+                {shadowProfile.socialMedia && shadowProfile.socialMedia.length > 0 && (
+                  <div className="rounded-2xl border border-slate-200 bg-white/60 p-4 shadow-sm">
+                    <div className="mb-3 flex items-center gap-2">
+                      <Globe className="h-4 w-4 text-cyan-500" />
+                      <span className="text-xs font-bold uppercase tracking-wide text-slate-700">Social Profiles</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {shadowProfile.socialMedia.map((social, idx) => (
+                        <a
+                          key={idx}
+                          href={social.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded-full border border-slate-200 bg-white/70 px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100"
+                        >
+                          {social.platform}
+                        </a>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </section>
           )}
 
           {/* Shadow Profile Loading State */}
           {shadowLoading && !shadowProfile && (
-            <section className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-5 shadow-lg border border-slate-700">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="animate-spin">
-                  <Search className="w-6 h-6 text-purple-400" />
+            <section className="relative overflow-hidden rounded-[2rem] border border-indigo-100/80 bg-white/70 p-6 shadow-[0_15px_40px_rgba(31,38,135,0.1)] backdrop-blur-xl">
+              <div className="pointer-events-none absolute -right-14 -top-14 h-56 w-56 rounded-full bg-indigo-300/20 blur-3xl" />
+              <div className="relative z-10">
+                <div className="mb-4 flex items-center gap-3">
+                  <div className="animate-spin text-[#3A63B8]">
+                    <Search className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-900">Deep Profile Search</h3>
+                    <p className="text-xs text-slate-500">Analyzing public data sources...</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-white">Deep Profile Search</h3>
-                  <p className="text-xs text-slate-400">Analyzing public data sources...</p>
+                <div className="space-y-3">
+                  <div className="h-4 animate-pulse rounded bg-slate-200/80" />
+                  <div className="h-4 w-3/4 animate-pulse rounded bg-slate-200/80" />
+                  <div className="h-4 w-1/2 animate-pulse rounded bg-slate-200/80" />
                 </div>
-              </div>
-              <div className="space-y-3">
-                <div className="h-4 bg-slate-700/50 rounded animate-pulse" />
-                <div className="h-4 bg-slate-700/50 rounded animate-pulse w-3/4" />
-                <div className="h-4 bg-slate-700/50 rounded animate-pulse w-1/2" />
               </div>
             </section>
           )}
