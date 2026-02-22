@@ -22,6 +22,7 @@ export interface FinancialDataResponse {
   balance: ProductResult;
   assets: ProductResult;
   investments: ProductResult;
+  identity: ProductResult;
   summary: {
     products_available: number;
     products_total: number;
@@ -189,26 +190,69 @@ const fetchInvestments = async (accessToken: string, userId: string): Promise<Pr
   }
 };
 
-/** Fetch all 3 products in parallel */
+/** Fetch identity data (name, email, phone, address from bank) */
+const fetchIdentity = async (accessToken: string): Promise<ProductResult> => {
+  try {
+    const token = await getUserAccessToken();
+    const res = await fetch(`${SUPABASE_URL}/get-identity`, {
+      method: 'POST', headers: getHeaders(token),
+      body: JSON.stringify({ accessToken }),
+    });
+    if (!res.ok) {
+      if (res.status === 400) return { available: false, data: null, error: null, reason: 'not_supported' };
+      const err = await res.json().catch(() => ({}));
+      return { available: false, data: null, error: err.error || 'Failed', reason: 'error' };
+    }
+    return { available: true, data: await res.json(), error: null, reason: null };
+  } catch (e: any) {
+    return { available: false, data: null, error: e.message, reason: 'error' };
+  }
+};
+
+/** Match user identity against bank account owner data */
+export const fetchIdentityMatch = async (
+  accessToken: string,
+  userData?: { legal_name?: string; phone_number?: string; email_address?: string; address?: any },
+): Promise<ProductResult> => {
+  try {
+    const token = await getUserAccessToken();
+    const res = await fetch(`${SUPABASE_URL}/identity-match`, {
+      method: 'POST', headers: getHeaders(token),
+      body: JSON.stringify({ accessToken, ...userData }),
+    });
+    if (!res.ok) {
+      if (res.status === 400) return { available: false, data: null, error: null, reason: 'not_supported' };
+      const err = await res.json().catch(() => ({}));
+      return { available: false, data: null, error: err.error || 'Failed', reason: 'error' };
+    }
+    return { available: true, data: await res.json(), error: null, reason: null };
+  } catch (e: any) {
+    return { available: false, data: null, error: e.message, reason: 'error' };
+  }
+};
+
+/** Fetch all 4 products in parallel */
 export const fetchAllFinancialData = async (
   accessToken: string, userId: string,
 ): Promise<FinancialDataResponse> => {
-  const [b, a, i] = await Promise.allSettled([
+  const [b, a, i, id] = await Promise.allSettled([
     fetchBalance(accessToken, userId),
     fetchAssets(accessToken, userId),
     fetchInvestments(accessToken, userId),
+    fetchIdentity(accessToken),
   ]);
 
   const balance = b.status === 'fulfilled' ? b.value : { available: false, data: null, error: 'Network error', reason: 'error' as const };
   const assets = a.status === 'fulfilled' ? a.value : { available: false, data: null, error: 'Network error', reason: 'error' as const };
   const investments = i.status === 'fulfilled' ? i.value : { available: false, data: null, error: 'Network error', reason: 'error' as const };
+  const identity = id.status === 'fulfilled' ? id.value : { available: false, data: null, error: 'Network error', reason: 'error' as const };
 
-  const count = [balance, assets, investments].filter(r => r.available).length;
+  const count = [balance, assets, investments, identity].filter(r => r.available).length;
 
   return {
-    status: count === 3 ? 'complete' : count > 0 ? 'partial' : 'failed',
-    balance, assets, investments,
-    summary: { products_available: count, products_total: 3, can_proceed: count >= 1 },
+    status: count === 4 ? 'complete' : count > 0 ? 'partial' : 'failed',
+    balance, assets, investments, identity,
+    summary: { products_available: count, products_total: 4, can_proceed: count >= 1 },
   };
 };
 
@@ -237,6 +281,7 @@ export const saveFinancialDataToSupabase = async (
     if (data.balance.error) errors.balance = data.balance.error;
     if (data.assets.error) errors.assets = data.assets.error;
     if (data.investments.error) errors.investments = data.investments.error;
+    if (data.identity?.error) errors.identity = data.identity.error;
 
     await supabase.from('user_financial_data').upsert({
       user_id: userId,
@@ -248,10 +293,12 @@ export const saveFinancialDataToSupabase = async (
       asset_report: data.assets.available ? data.assets.data : null,
       asset_report_token: data.assets.data?.asset_report_token || null,
       investments: data.investments.available ? data.investments.data : null,
+      identity_data: data.identity?.available ? data.identity.data : null,
       available_products: {
         balance: data.balance.available,
         assets: data.assets.available,
         investments: data.investments.available,
+        identity: data.identity?.available || false,
       },
       status: data.status,
       fetch_errors: Object.keys(errors).length > 0 ? errors : null,
