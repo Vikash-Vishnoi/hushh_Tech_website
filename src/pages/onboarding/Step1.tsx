@@ -145,11 +145,16 @@ export default function OnboardingStep1() {
       if (hasSkipped) {
         console.log('[Step1] User skipped financial verification - allowing access');
       } else {
-        const { data: financialData } = await config.supabaseClient
+        const { data: financialData, error: finError } = await config.supabaseClient
           .from('user_financial_data')
           .select('status')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
+
+        // If query errored or no row found, redirect to financial link
+        if (finError) {
+          console.warn('[Step1] Financial data query error:', finError.message);
+        }
 
         if (!financialData || (financialData.status !== 'complete' && financialData.status !== 'partial')) {
           navigate('/onboarding/financial-link', { replace: true });
@@ -161,7 +166,7 @@ export default function OnboardingStep1() {
         .from('onboarding_data')
         .select('class_a_units, class_b_units, class_c_units, recurring_frequency, recurring_day_of_month, recurring_amount')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (onboardingData) {
         setUnits({

@@ -436,7 +436,7 @@ function OnboardingStep13() {
           bank_routing_number, bank_address_city, bank_address_country
         `)
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       // Track what DB already has so we know what's "pre-filled" vs "empty"
       let dbHasBankName = false;
