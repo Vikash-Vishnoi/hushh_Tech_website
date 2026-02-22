@@ -750,7 +750,7 @@ function OnboardingStep13() {
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-bold text-slate-900 truncate">{acct.name}</p>
                           <p className="text-xs text-slate-500">
-                            {acct.subtype.charAt(0).toUpperCase() + acct.subtype.slice(1)} Â· Â·Â·Â·Â·{acct.mask}
+                            {acct.subtype.charAt(0).toUpperCase() + acct.subtype.slice(1)} &middot; &bull;&bull;&bull;&bull;{acct.mask}
                           </p>
                         </div>
                         {/* Selected check */}

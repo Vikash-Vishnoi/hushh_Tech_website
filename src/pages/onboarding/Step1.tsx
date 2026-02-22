@@ -253,7 +253,7 @@ export default function OnboardingStep1() {
     }
   };
 
-  const handleBack = () => navigate('/onboarding/financial-link');
+  const handleBack = () => navigate('/dashboard');
 
   /* ─── Frequency buttons config ─── */
   const freqOptions: { value: RecurringFrequency; label: string }[] = [
@@ -274,24 +274,14 @@ export default function OnboardingStep1() {
       style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Inter', sans-serif", WebkitFontSmoothing: 'antialiased' }}
     >
       {/* ═══ iOS Navigation Bar ═══ */}
-      <nav className="sticky top-0 z-50 bg-[#F2F2F7]/90 backdrop-blur-md border-b border-[#C6C6C8]/30 flex items-center justify-between px-4" style={{ paddingTop: 'calc(env(safe-area-inset-top, 12px) + 4px)', paddingBottom: '8px', minHeight: '56px' }}>
-        <button
-          onClick={handleBack}
-          className="text-[#007AFF] flex items-center -ml-1"
-          aria-label="Go back"
-        >
-          <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 0, 'wght' 400" }}>
-            arrow_back_ios_new
-          </span>
+      <nav className="sticky top-0 z-30 bg-[#F2F2F7]/95 backdrop-blur-md border-b border-[#C6C6C8]/30 flex items-end justify-between px-4 pb-2" style={{ paddingTop: 'calc(env(safe-area-inset-top, 12px) + 4px)', minHeight: '48px' }}>
+        <button onClick={handleBack} className="text-[#007AFF] flex items-center -ml-2 active:opacity-50 transition-opacity" aria-label="Go back">
+          <span className="material-symbols-outlined text-3xl -mr-1" style={{ fontVariationSettings: "'FILL' 0, 'wght' 400" }}>chevron_left</span>
+          <span className="text-[17px] leading-none pb-[2px]">Back</span>
         </button>
-        <h1 className="text-[17px] font-semibold absolute left-1/2 transform -translate-x-1/2 text-black">
-          Onboarding
-        </h1>
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="text-[#007AFF] text-[17px] font-normal"
-        >
-          Save &amp; Exit
+        <h1 className="text-[17px] font-semibold text-black absolute left-1/2 transform -translate-x-1/2">Onboarding</h1>
+        <button onClick={() => navigate('/dashboard')} className="text-[#007AFF] text-[17px] font-normal active:opacity-50 transition-opacity">
+          Skip
         </button>
       </nav>
 
