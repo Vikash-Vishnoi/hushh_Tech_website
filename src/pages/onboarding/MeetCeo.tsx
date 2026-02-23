@@ -152,7 +152,11 @@ function MeetCeoPage() {
   const fetchCalendarSlots = async () => {
     setLoadingSlots(true);
     try {
-      const res = await fetch(`${config.SUPABASE_URL}/functions/v1/ceo-calendar-booking?days=14`);
+      const { data: { session } } = await config.supabaseClient!.auth.getSession();
+      if (!session) { setLoadingSlots(false); return; }
+      const res = await fetch(`${config.SUPABASE_URL}/functions/v1/ceo-calendar-booking?days=14`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
       const data = await res.json();
       if (data.success) { setCalendarData(data); if (data.availability?.length) setSelectedDate(data.availability[0].date); }
     } catch (err) { console.error('Calendar fetch error:', err); }
