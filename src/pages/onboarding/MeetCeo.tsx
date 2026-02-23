@@ -59,6 +59,19 @@ function MeetCeoPage() {
     } catch (err) { console.error('Coins email failed (non-blocking):', err); }
   };
 
+  /* ── Send Hushh Coins deduction email when meeting is booked (fire-and-forget) ── */
+  const sendCoinsDeductionEmail = async (email: string, name: string, coins: number, meetingDate: string, meetingTime: string) => {
+    try {
+      const { data: { session } } = await config.supabaseClient!.auth.getSession();
+      if (!session) return;
+      await fetch(`${config.SUPABASE_URL}/functions/v1/coins-deduction-notification`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ recipientEmail: email, recipientName: name, coinsDeducted: coins, meetingDate, meetingTime }),
+      });
+    } catch (err) { console.error('Deduction email failed (non-blocking):', err); }
+  };
+
   /* ── API Handlers ── */
 
   const checkPaymentStatus = async () => {
@@ -86,9 +99,13 @@ function MeetCeoPage() {
       });
       const result = await res.json();
       if (result.success) {
-        setHushhCoins(result.hushhCoinsAwarded || 300000);
+        const coins = result.hushhCoinsAwarded || 300000;
+        setHushhCoins(coins);
         setPaymentState('paid');
         window.history.replaceState({}, '', '/onboarding/meet-ceo');
+        // Send coins credit email after Stripe payment
+        const { data: { user } } = await config.supabaseClient!.auth.getUser();
+        if (user) sendCoinsEmail(user.email || '', user.user_metadata?.full_name || 'Hushh User', coins);
       } else throw new Error(result.error || 'Verification failed');
     } catch (err: any) { setError(err.message); setPaymentState('not_paid'); }
   };
@@ -154,7 +171,13 @@ function MeetCeoPage() {
         body: JSON.stringify({ startTime: selectedSlot.startTime, endTime: selectedSlot.endTime, attendeeName: user?.user_metadata?.full_name || 'Hushh User' }),
       });
       const result = await res.json();
-      if (result.success) { setPaymentState('booked'); } else throw new Error(result.error || 'Booking failed');
+      if (result.success) {
+        setPaymentState('booked');
+        // Send coins deduction email after successful booking
+        const meetingDate = new Date(selectedSlot.startTime).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+        const meetingTime = `${new Date(selectedSlot.startTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })} – ${new Date(selectedSlot.endTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`;
+        sendCoinsDeductionEmail(user?.email || '', user?.user_metadata?.full_name || 'Hushh User', 300000, meetingDate, meetingTime);
+      } else throw new Error(result.error || 'Booking failed');
     } catch (err: any) { setError(err.message); }
     finally { setBookingInProgress(false); }
   };
