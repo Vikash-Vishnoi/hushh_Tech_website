@@ -50,11 +50,11 @@ const HushhTechBackHeader: React.FC<HushhTechBackHeaderProps> = ({
         </span>
       </button>
 
-      {/* Right action button */}
+      {/* Right action button — same h-10 as back button */}
       {showRightButton && (
         <button
           onClick={onRightClick}
-          className="px-5 py-2 border border-black text-[11px] font-bold tracking-widest uppercase text-gray-900 hover:bg-black hover:text-white transition-colors"
+          className="h-10 px-5 border border-black text-[11px] font-bold tracking-widest uppercase text-gray-900 hover:bg-black hover:text-white transition-colors flex items-center justify-center"
           aria-label={rightLabel}
           tabIndex={0}
         >

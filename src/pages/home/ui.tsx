@@ -74,6 +74,7 @@ export default function HomePage() {
             onClick={primaryCTA.action}
             disabled={primaryCTA.loading}
             variant={HushhTechCtaVariant.BLACK}
+            className="rounded-2xl"
           >
             {primaryCTA.text}
             <span className="material-symbols-outlined thin-icon text-lg">arrow_forward</span>
@@ -81,6 +82,7 @@ export default function HomePage() {
           <HushhTechCta
             onClick={() => onNavigate("/fund-a")}
             variant={HushhTechCtaVariant.WHITE}
+            className="rounded-2xl"
           >
             Discover Fund A
           </HushhTechCta>
@@ -259,6 +261,7 @@ export default function HomePage() {
           <HushhTechCta
             onClick={() => onNavigate("/approach")}
             variant={HushhTechCtaVariant.BLACK}
+            className="rounded-2xl"
           >
             Explore our Approach
             <span className="material-symbols-outlined thin-icon text-lg">arrow_right_alt</span>
@@ -266,6 +269,7 @@ export default function HomePage() {
           <HushhTechCta
             onClick={() => onNavigate("/learn")}
             variant={HushhTechCtaVariant.WHITE}
+            className="rounded-2xl"
           >
             Learn More
           </HushhTechCta>
