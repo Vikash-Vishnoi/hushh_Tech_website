@@ -605,6 +605,15 @@ body.onboarding-page-scroll {
   font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
+/* Hide scrollbar utility — user swipes instead */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Global responsive safety */
 html,
 body,
