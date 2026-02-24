@@ -1,49 +1,25 @@
 /**
- * Step 13 — All UI / Presentation
- * Bank details form, Plaid account selector, iOS-styled layout
+ * Step 13 — Bank Details
+ * Premium Hushh design matching Step 1-11.
+ * Bank form, Plaid account selector, country overlay select.
+ * Logic stays in logic.ts — zero logic changes.
  */
 import {
   useStep13Logic,
   SHARE_CLASSES,
   COUNTRIES,
   formatCurrency,
-  type PlaidAccount,
-  type TouchedFields,
 } from './logic';
-
-// ─── SVG Icon Components ───
-
-const StarIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="#D4AF37" stroke="#D4AF37" strokeWidth="1">
-    <polygon points="12,2 15,8.5 22,9.3 17,14 18.2,21 12,17.5 5.8,21 7,14 2,9.3 9,8.5" />
-  </svg>
-);
-
-const DiamondIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M6 3H18L22 9L12 21L2 9L6 3Z" />
-  </svg>
-);
-
-const VerifiedIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2b8cee" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 2L15 5L19 5L19 9L22 12L19 15L19 19L15 19L12 22L9 19L5 19L5 15L2 12L5 9L5 5L9 5L12 2Z" />
-    <polyline points="9,12 11,14 15,10" />
-  </svg>
-);
-
-const ICON_MAP: Record<string, React.ReactNode> = {
-  diamond: <DiamondIcon />,
-  star: <StarIcon />,
-  verified: <VerifiedIcon />,
-};
+import HushhTechBackHeader from '../../../components/hushh-tech-back-header/HushhTechBackHeader';
+import HushhTechCta, {
+  HushhTechCtaVariant,
+} from '../../../components/hushh-tech-cta/HushhTechCta';
 
 export default function OnboardingStep13() {
   const {
     loading,
     pageLoading,
     error,
-    isFooterVisible,
     autoFillMessage,
     plaidAccounts,
     selectedAccountIdx,
@@ -87,82 +63,79 @@ export default function OnboardingStep13() {
   } = useStep13Logic();
 
   return (
-    <div
-      className="bg-white min-h-[100dvh]"
-      style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Inter', sans-serif", WebkitFontSmoothing: 'antialiased' }}
-    >
-      {/* ═══ iOS Navigation Bar ═══ */}
-      <nav
-        className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-[#C6C6C8]/30 flex items-end justify-between px-4 pb-2"
-        style={{ paddingTop: 'calc(env(safe-area-inset-top, 12px) + 4px)', minHeight: '48px' }}
-      >
-        <button onClick={handleBack} className="text-[#007AFF] flex items-center -ml-2 active:opacity-50 transition-opacity" aria-label="Go back">
-          <span className="material-symbols-outlined text-3xl -mr-1" style={{ fontVariationSettings: "'FILL' 0, 'wght' 400" }}>chevron_left</span>
-          <span className="text-[17px] leading-none pb-[2px]">Back</span>
-        </button>
-        <span className="font-semibold text-[17px] text-black">Setup</span>
-        <button onClick={handleSkip} className="text-[17px] text-[#007AFF] font-normal active:opacity-50 transition-opacity">Skip</button>
-      </nav>
+    <div className="bg-white text-gray-900 min-h-screen antialiased flex flex-col selection:bg-black selection:text-white">
+      {/* ═══ Header ═══ */}
+      <HushhTechBackHeader onBackClick={handleBack} rightLabel="FAQs" />
 
-      <main className="max-w-lg mx-auto w-full px-4 pt-2 pb-48">
-        {/* ─── Progress ─── */}
-        <div className="mb-6 mt-2">
-          <div className="flex justify-between items-end mb-2 px-1">
-            <span className="text-[13px] font-medium text-[#8E8E93] uppercase tracking-wide">Onboarding Progress</span>
-            <span className="text-[13px] text-[#8E8E93]">Step 12/12</span>
+      <main className="px-6 flex-grow max-w-md mx-auto w-full pb-48">
+        {/* ── Progress Bar ── */}
+        <div className="py-4">
+          <div className="flex justify-between text-[11px] font-semibold tracking-wide text-gray-500 mb-3 lowercase">
+            <span>step 12/12</span>
+            <span>100% complete</span>
           </div>
-          <div className="h-1 w-full bg-gray-200 rounded-full overflow-hidden">
-            <div className="h-full bg-[#007AFF] w-full rounded-full" />
+          <div className="h-0.5 w-full bg-gray-200 rounded-full overflow-hidden">
+            <div className="h-full bg-black w-full" />
           </div>
-          <p className="mt-1.5 px-1 text-[12px] font-medium text-[#007AFF]">100% complete</p>
         </div>
 
-        {/* ─── Title ─── */}
-        <h1 className="text-[34px] leading-tight font-bold text-black tracking-tight mb-2 px-1">Bank Details</h1>
-        <p className="text-[17px] leading-snug text-[#8E8E93] mb-8 px-1">
-          Provide your banking information for investment transfers securely.
-        </p>
+        {/* ── Title Section ── */}
+        <section className="py-8">
+          <h3 className="text-[11px] tracking-wide text-gray-500 lowercase mb-4 font-semibold">final step</h3>
+          <h1
+            className="text-[2.75rem] leading-[1.1] font-normal text-black tracking-tight lowercase"
+            style={{ fontFamily: "'Playfair Display', serif" }}
+          >
+            bank
+            <br />
+            <span className="text-gray-400 italic font-normal">details</span>
+          </h1>
+          <p className="text-sm text-gray-500 mt-4 leading-relaxed lowercase font-medium">
+            provide your banking information for investment transfers securely.
+          </p>
+        </section>
 
-        {/* ─── Page Loading Shimmer ─── */}
+        {/* ── Page Loading Shimmer ── */}
         {pageLoading && (
           <div className="space-y-4 animate-pulse">
-            <div className="h-[120px] bg-gray-100 rounded-xl" />
-            <div className="space-y-0 rounded-[10px] overflow-hidden border border-gray-100">
-              {[1,2,3,4].map(i => <div key={i} className="h-[44px] bg-gray-50 border-b border-gray-100" />)}
-            </div>
-            <div className="space-y-0 rounded-[10px] overflow-hidden border border-gray-100">
-              {[1,2,3].map(i => <div key={i} className="h-[44px] bg-gray-50 border-b border-gray-100" />)}
-            </div>
-            <div className="flex justify-center pt-4">
-              <div className="w-10 h-10 border-4 border-gray-200 border-t-[#007AFF] rounded-full animate-spin" />
-            </div>
-            <p className="text-center text-[13px] text-[#8E8E93]">Loading your data...</p>
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="h-16 bg-gray-100 rounded-xl border-b border-gray-200" />
+            ))}
+            <p className="text-center text-xs text-gray-400 lowercase font-medium pt-4">loading your data...</p>
           </div>
         )}
 
-        {/* ─── Form Content (hidden while loading) ─── */}
-        {!pageLoading && <>
-          {/* Error Message */}
-          {error && (
-            <div className="mx-5 mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
-              {error}
-            </div>
-          )}
+        {/* ── Form Content ── */}
+        {!pageLoading && (
+          <>
+            {/* Error */}
+            {error && (
+              <div className="mb-6 flex items-center gap-3 py-4 px-1 border-b border-red-100">
+                <div className="w-10 h-10 rounded-full bg-red-50 border border-red-200 flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-red-500 text-lg" style={{ fontVariationSettings: "'FILL' 1, 'wght' 600" }}>error</span>
+                </div>
+                <p className="text-sm font-medium text-red-700 lowercase">{error}</p>
+              </div>
+            )}
 
-          {/* Plaid Auto-Fill Banner */}
-          {autoFillMessage && (
-            <div className="mx-5 mb-4 p-3 bg-[#F0F7FF] border border-[#2b8cee]/20 rounded-xl text-[#2b8cee] text-sm font-medium text-center animate-pulse">
-              {autoFillMessage}
-            </div>
-          )}
+            {/* Plaid Auto-Fill Banner */}
+            {autoFillMessage && (
+              <div className="mb-6 flex items-center gap-3 py-4 px-1 border-b border-green-100">
+                <div className="w-10 h-10 rounded-full bg-green-50 border border-green-200 flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-green-600 text-lg" style={{ fontVariationSettings: "'FILL' 1, 'wght' 600" }}>check_circle</span>
+                </div>
+                <p className="text-sm font-medium text-green-700 lowercase">{autoFillMessage}</p>
+              </div>
+            )}
 
-          {/* Multi-Account Selector — shown when Plaid returns 2+ accounts */}
-          {plaidAccounts.length > 1 && (
-            <div className="mx-5 mb-5">
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
-                <p className="text-xs font-bold tracking-widest text-slate-500 uppercase mb-3">
-                  {plaidInstitutionName ? `${plaidInstitutionName} - ` : ''}SELECT ACCOUNT
-                </p>
+            {/* Multi-Account Selector */}
+            {plaidAccounts.length > 1 && (
+              <section className="mb-6">
+                <div className="py-4">
+                  <h3 className="text-[11px] tracking-wide text-gray-500 lowercase font-semibold">
+                    {plaidInstitutionName ? `${plaidInstitutionName.toLowerCase()} — ` : ''}select account
+                  </h3>
+                </div>
                 <div className="space-y-2">
                   {plaidAccounts.map((acct, idx) => {
                     const isSelected = idx === selectedAccountIdx;
@@ -178,230 +151,249 @@ export default function OnboardingStep13() {
                           userModifiedFields.current.delete('accountType');
                           applyAccountSelection(acct);
                         }}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition-all text-left ${
-                          isSelected
-                            ? 'border-[#2b8cee] bg-[#F0F7FF] ring-1 ring-[#2b8cee]/30'
-                            : 'border-slate-200 bg-white hover:bg-slate-50'
+                        className={`w-full flex items-center gap-4 py-4 px-1 border-b transition-all text-left ${
+                          isSelected ? 'border-black' : 'border-gray-200'
                         }`}
-                        aria-label={`Select ${acct.name} ending in ${acct.mask}`}
                       >
-                        {/* Radio indicator */}
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                          isSelected ? 'border-[#2b8cee]' : 'border-slate-300'
-                        }`}>
-                          {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-[#2b8cee]" />}
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${isSelected ? 'bg-black' : 'bg-gray-100'}`}>
+                          <span className={`material-symbols-outlined text-lg ${isSelected ? 'text-white' : 'text-gray-400'}`} style={{ fontVariationSettings: "'wght' 400" }}>account_balance</span>
                         </div>
-                        {/* Account info */}
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-slate-900 truncate">{acct.name}</p>
-                          <p className="text-xs text-slate-500">
-                            {acct.subtype.charAt(0).toUpperCase() + acct.subtype.slice(1)} &middot; &bull;&bull;&bull;&bull;{acct.mask}
-                          </p>
+                          <span className="text-sm font-semibold text-gray-900 lowercase block truncate">{acct.name.toLowerCase()}</span>
+                          <span className="text-xs text-gray-500 font-medium lowercase">{acct.subtype} · ····{acct.mask}</span>
                         </div>
-                        {/* Selected check */}
                         {isSelected && (
-                          <span className="text-[#2b8cee] text-sm font-bold">*</span>
+                          <span className="material-symbols-outlined text-black text-lg" style={{ fontVariationSettings: "'FILL' 1, 'wght' 600" }}>check_circle</span>
                         )}
                       </button>
                     );
                   })}
                 </div>
-              </div>
-            </div>
-          )}
+              </section>
+            )}
 
-          {/* Investment Amount Card */}
-          {hasAnyUnits && (
-            <div className="mx-5 mb-6">
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-                <p className="text-xs font-bold tracking-widest text-slate-500 uppercase mb-1">
-                  INVESTMENT AMOUNT
-                </p>
-                <div className="text-3xl font-bold text-slate-900 mb-4">
-                  {formatCurrency(totalInvestment)}
+            {/* Investment Amount Card */}
+            {hasAnyUnits && (
+              <section className="mb-8">
+                <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
+                  <div className="flex flex-col items-center text-center gap-2">
+                    <span className="text-[11px] tracking-wide text-gray-500 lowercase font-semibold">investment amount</span>
+                    <span className="text-3xl font-bold text-black tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
+                      {formatCurrency(totalInvestment)}
+                    </span>
+                    <div className="flex flex-wrap gap-2 mt-2 justify-center">
+                      {SHARE_CLASSES.map((sc) => {
+                        const units = getUnits(sc.id);
+                        if (units === 0) return null;
+                        return (
+                          <span key={sc.id} className="px-2 py-0.5 text-[10px] font-semibold rounded bg-gray-100 text-gray-600 border border-gray-200 lowercase">
+                            {sc.name.toLowerCase()} · {units}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
+              </section>
+            )}
 
-                {/* Share Class Pills */}
-                <div className="flex flex-wrap gap-2">
-                  {SHARE_CLASSES.map((shareClass) => {
-                    const units = getUnits(shareClass.id);
-                    if (units === 0) return null;
-
-                    return (
-                      <div
-                        key={shareClass.id}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full"
-                        style={{
-                          backgroundColor: shareClass.bgColor,
-                          border: `1px solid ${shareClass.borderColor}`,
-                        }}
-                      >
-                        {ICON_MAP[shareClass.iconType]}
-                        <span
-                          className="text-xs font-bold"
-                          style={{ color: shareClass.color }}
-                        >
-                          {shareClass.name} —{units}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
+            {/* ── Banking Information ── */}
+            <section className="space-y-0 mb-6">
+              <div className="py-4">
+                <h3 className="text-[11px] tracking-wide text-gray-500 lowercase font-semibold">banking information</h3>
               </div>
-            </div>
-          )}
 
-          {/* ─── BANKING INFORMATION — iOS Grouped Table ─── */}
-          <div className="mb-8">
-            <div className="uppercase text-[13px] text-[#8E8E93] mb-2 px-4 font-normal">Banking Information</div>
-            <div className="bg-white rounded-[10px] overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.05)] divide-y divide-[#C6C6C8]/50">
               {/* Bank Name */}
-              <div className="flex items-center min-h-[44px] px-4 active:bg-gray-100 transition-colors">
-                <label className="w-1/3 text-[17px] text-black py-3">Bank Name</label>
-                <input
-                  type="text"
-                  value={bankName}
-                  onChange={(e) => { userModifiedFields.current.add('bankName'); setBankName(e.target.value); }}
-                  onBlur={() => handleBlur('bankName')}
-                  placeholder="Required"
-                  className="w-2/3 bg-transparent border-none text-[17px] text-right text-black placeholder-[#8E8E93] focus:ring-0 p-0"
-                />
+              <div className="py-5 border-b border-gray-200">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-gray-700 text-lg" style={{ fontVariationSettings: "'wght' 400" }}>account_balance</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <label className="text-sm font-semibold text-gray-900 lowercase block mb-1">bank name</label>
+                    <input
+                      type="text"
+                      value={bankName}
+                      onChange={(e) => { userModifiedFields.current.add('bankName'); setBankName(e.target.value); }}
+                      onBlur={() => handleBlur('bankName')}
+                      placeholder="enter bank name"
+                      className="w-full text-sm text-gray-700 font-medium bg-transparent border-none outline-none p-0 placeholder-gray-400 focus:ring-0 lowercase"
+                    />
+                  </div>
+                </div>
+                {touched.bankName && bankNameError && <p className="text-xs text-red-500 font-medium mt-2 pl-14 lowercase">{bankNameError}</p>}
               </div>
-              {/* Holder Name */}
-              <div className="flex items-center min-h-[44px] px-4 active:bg-gray-100 transition-colors">
-                <label className="w-1/3 text-[17px] text-black py-3 whitespace-nowrap">Holder Name</label>
-                <input
-                  type="text"
-                  value={accountHolderName}
-                  onChange={(e) => setAccountHolderName(e.target.value)}
-                  onBlur={() => handleBlur('accountHolderName')}
-                  placeholder="Required"
-                  className="w-2/3 bg-transparent border-none text-[17px] text-right text-black placeholder-[#8E8E93] focus:ring-0 p-0"
-                />
+
+              {/* Account Holder Name */}
+              <div className="py-5 border-b border-gray-200">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-gray-700 text-lg" style={{ fontVariationSettings: "'wght' 400" }}>person</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <label className="text-sm font-semibold text-gray-900 lowercase block mb-1">account holder name</label>
+                    <input
+                      type="text"
+                      value={accountHolderName}
+                      onChange={(e) => setAccountHolderName(e.target.value)}
+                      onBlur={() => handleBlur('accountHolderName')}
+                      placeholder="as it appears on your account"
+                      className="w-full text-sm text-gray-700 font-medium bg-transparent border-none outline-none p-0 placeholder-gray-400 focus:ring-0 lowercase"
+                    />
+                  </div>
+                </div>
+                {touched.accountHolderName && accountHolderNameError && <p className="text-xs text-red-500 font-medium mt-2 pl-14 lowercase">{accountHolderNameError}</p>}
               </div>
+
               {/* Account Type */}
-              <div className="flex items-center justify-between min-h-[44px] px-4 cursor-pointer">
-                <label className="text-[17px] text-black py-3">Account Type</label>
-                <div className="flex items-center">
-                  <span className="text-[17px] text-[#8E8E93] mr-2">{formattedOnboardingAccountType}</span>
-                  <span className="material-symbols-outlined text-gray-400 text-lg">chevron_right</span>
+              <div className="py-5 border-b border-gray-200">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-gray-700 text-lg" style={{ fontVariationSettings: "'wght' 400" }}>credit_card</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm font-semibold text-gray-900 lowercase block mb-1">account type</span>
+                    <span className="text-sm text-gray-700 font-medium lowercase">{formattedOnboardingAccountType.toLowerCase()}</span>
+                  </div>
+                  <span className="material-symbols-outlined text-gray-400 text-lg" style={{ fontVariationSettings: "'wght' 400" }}>chevron_right</span>
                 </div>
               </div>
-              {/* Country */}
-              <div className="flex items-center justify-between min-h-[44px] px-4 cursor-pointer relative">
-                <label className="text-[17px] text-black py-3">Country</label>
-                <div className="flex items-center">
-                  <select
-                    value={bankCountry}
-                    onChange={(e) => { userModifiedFields.current.add('bankCountry'); setBankCountry(e.target.value); handleBlur('bankCountry'); }}
-                    onBlur={() => handleBlur('bankCountry')}
-                    className="appearance-none bg-transparent border-none text-[17px] text-[#8E8E93] text-right focus:ring-0 p-0 pr-6 cursor-pointer"
-                  >
-                    {COUNTRIES.map((c) => (
-                      <option key={c.code} value={c.code} disabled={c.code === ''}>{c.name}</option>
-                    ))}
-                  </select>
-                  <span className="material-symbols-outlined text-gray-400 text-lg absolute right-4 pointer-events-none">chevron_right</span>
+
+              {/* Country — overlay select */}
+              <div className="relative py-5 border-b border-gray-200 cursor-pointer">
+                <div className="flex items-center gap-4 pointer-events-none">
+                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-gray-700 text-lg" style={{ fontVariationSettings: "'wght' 400" }}>public</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm font-semibold text-gray-900 lowercase block mb-1">country</span>
+                    <span className="text-sm text-gray-700 font-medium lowercase">
+                      {COUNTRIES.find(c => c.code === bankCountry)?.name.toLowerCase() || 'select country'}
+                    </span>
+                  </div>
+                  <span className="material-symbols-outlined text-gray-400 text-lg" style={{ fontVariationSettings: "'wght' 400" }}>expand_more</span>
                 </div>
-              </div>
-            </div>
-            <p className="mt-2 px-4 text-[13px] text-[#8E8E93] leading-normal">Ensure the account holder name matches your ID exactly.</p>
-            {touched.bankName && bankNameError && <p className="mt-1 px-4 text-[13px] text-red-500">{bankNameError}</p>}
-            {touched.accountHolderName && accountHolderNameError && <p className="mt-1 px-4 text-[13px] text-red-500">{accountHolderNameError}</p>}
-          </div>
-
-          {/* ─── ACCOUNT DETAILS — iOS Grouped Table ─── */}
-          <div className="mb-8">
-            <div className="uppercase text-[13px] text-[#8E8E93] mb-2 px-4 font-normal">Account Details</div>
-            <div className="bg-white rounded-[10px] overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.05)] divide-y divide-[#C6C6C8]/50">
-              {/* Routing # */}
-              <div className="flex items-center min-h-[44px] px-4 active:bg-gray-100 transition-colors">
-                <label className="w-1/3 text-[17px] text-black py-3">Routing #</label>
-                <input
-                  type="tel"
-                  inputMode="numeric"
-                  value={routingNumber}
-                  onChange={(e) => { userModifiedFields.current.add('routingNumber'); setRoutingNumber(e.target.value.replace(/\D/g, '').slice(0, bankCountry === 'US' ? 9 : 15)); }}
-                  onBlur={() => handleBlur('routingNumber')}
-                  placeholder="9 digits"
-                  maxLength={bankCountry === 'US' ? 9 : 15}
-                  className="w-2/3 bg-transparent border-none text-[17px] text-right text-black placeholder-[#8E8E93] focus:ring-0 p-0 font-mono tracking-tight"
-                />
-              </div>
-              {/* Account # */}
-              <div className="flex items-center min-h-[44px] px-4 active:bg-gray-100 transition-colors">
-                <label className="w-1/3 text-[17px] text-black py-3">Account #</label>
-                <input
-                  type="tel"
-                  inputMode="numeric"
-                  value={accountNumber}
-                  onChange={(e) => { userModifiedFields.current.add('accountNumber'); setAccountNumber(e.target.value.replace(/\D/g, '')); }}
-                  onBlur={() => handleBlur('accountNumber')}
-                  placeholder="Required"
-                  className="w-2/3 bg-transparent border-none text-[17px] text-right text-black placeholder-[#8E8E93] focus:ring-0 p-0 font-mono tracking-tight"
-                />
-              </div>
-              {/* Confirm # */}
-              <div className="flex items-center min-h-[44px] px-4 active:bg-gray-100 transition-colors">
-                <label className="w-1/3 text-[17px] text-black py-3">Confirm #</label>
-                <input
-                  type="tel"
-                  inputMode="numeric"
-                  value={confirmAccountNumber}
-                  onChange={(e) => { userModifiedFields.current.add('confirmAccountNumber'); setConfirmAccountNumber(e.target.value.replace(/\D/g, '')); }}
-                  onBlur={() => handleBlur('confirmAccountNumber')}
-                  placeholder="Re-enter number"
-                  className="w-2/3 bg-transparent border-none text-[17px] text-right text-black placeholder-[#8E8E93] focus:ring-0 p-0 font-mono tracking-tight"
-                />
-              </div>
-            </div>
-            <p className="mt-2 px-4 text-[13px] text-[#8E8E93] leading-normal">Routing number can be found on the bottom left of your check.</p>
-            {touched.routingNumber && routingNumberError && <p className="mt-1 px-4 text-[13px] text-red-500">{routingNumberError}</p>}
-            {touched.accountNumber && accountNumberError && <p className="mt-1 px-4 text-[13px] text-red-500">{accountNumberError}</p>}
-            {touched.confirmAccountNumber && confirmAccountNumberError && <p className="mt-1 px-4 text-[13px] text-red-500">{confirmAccountNumberError}</p>}
-          </div>
-
-          {/* ─── Security Badge ─── */}
-          <div className="flex flex-col items-center justify-center mt-6 mb-8 opacity-80">
-            <div className="flex items-center space-x-1.5 text-[#8E8E93]">
-              <span className="material-symbols-outlined text-[16px]">lock</span>
-              <span className="text-[13px] font-medium">Bank-level Security</span>
-            </div>
-            <p className="text-[11px] text-[#8E8E93] mt-1 text-center max-w-xs">
-              Your data is encrypted with 256-bit SSL security.
-            </p>
-          </div>
-        </>}
-        </main>
-
-        {/* ═══ iOS Fixed Footer ═══ */}
-        {!isFooterVisible && (
-          <div
-            className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-[#C6C6C8]/30 px-4 pt-3 z-50"
-            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}
-            data-onboarding-footer
-          >
-            <div className="max-w-lg mx-auto flex flex-col gap-3">
-              <div className="flex gap-4 h-[50px]">
-                <button onClick={handleBack} disabled={loading} className="flex-1 bg-gray-200 text-black font-semibold text-[17px] rounded-xl active:bg-gray-300 transition-colors">Back</button>
-                <button
-                  onClick={handleContinue}
-                  disabled={loading || !isFormValid()}
-                  data-onboarding-cta
-                  className={`flex-1 rounded-xl font-semibold text-[17px] flex items-center justify-center gap-1 active:scale-[0.98] transition-all shadow-lg shadow-blue-500/20 ${
-                    isFormValid() && !loading ? 'bg-[#007AFF] text-white' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  }`}
+                <select
+                  value={bankCountry}
+                  onChange={(e) => { userModifiedFields.current.add('bankCountry'); setBankCountry(e.target.value); handleBlur('bankCountry'); }}
+                  onBlur={() => handleBlur('bankCountry')}
+                  aria-label="Bank country"
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 >
-                  {loading ? 'Saving...' : 'Continue'}
-                  {!loading && <span className="material-symbols-outlined text-xl">arrow_forward</span>}
-                </button>
+                  {COUNTRIES.map((c) => (
+                    <option key={c.code} value={c.code} disabled={c.code === ''}>{c.name}</option>
+                  ))}
+                </select>
               </div>
-              <button onClick={handleSkip} disabled={loading} className="text-[15px] font-medium text-[#8E8E93] active:text-[#007AFF] transition-colors text-center">
-                I'll do this later
-              </button>
-            </div>
-          </div>
+            </section>
+
+            {/* ── Account Details ── */}
+            <section className="space-y-0 mb-6">
+              <div className="py-4">
+                <h3 className="text-[11px] tracking-wide text-gray-500 lowercase font-semibold">account details</h3>
+              </div>
+
+              {/* Routing Number */}
+              <div className="py-5 border-b border-gray-200">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-gray-700 text-lg" style={{ fontVariationSettings: "'wght' 400" }}>tag</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <label className="text-sm font-semibold text-gray-900 lowercase block mb-1">routing number</label>
+                    <input
+                      type="tel"
+                      inputMode="numeric"
+                      value={routingNumber}
+                      onChange={(e) => { userModifiedFields.current.add('routingNumber'); setRoutingNumber(e.target.value.replace(/\D/g, '').slice(0, bankCountry === 'US' ? 9 : 15)); }}
+                      onBlur={() => handleBlur('routingNumber')}
+                      placeholder={bankCountry === 'US' ? '9 digits' : 'enter routing number'}
+                      maxLength={bankCountry === 'US' ? 9 : 15}
+                      className="w-full text-sm text-gray-700 font-medium font-mono tracking-wider bg-transparent border-none outline-none p-0 placeholder-gray-400 focus:ring-0"
+                    />
+                  </div>
+                </div>
+                {touched.routingNumber && routingNumberError && <p className="text-xs text-red-500 font-medium mt-2 pl-14 lowercase">{routingNumberError}</p>}
+              </div>
+
+              {/* Account Number */}
+              <div className="py-5 border-b border-gray-200">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-gray-700 text-lg" style={{ fontVariationSettings: "'wght' 400" }}>pin</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <label className="text-sm font-semibold text-gray-900 lowercase block mb-1">account number</label>
+                    <input
+                      type="tel"
+                      inputMode="numeric"
+                      value={accountNumber}
+                      onChange={(e) => { userModifiedFields.current.add('accountNumber'); setAccountNumber(e.target.value.replace(/\D/g, '')); }}
+                      onBlur={() => handleBlur('accountNumber')}
+                      placeholder="enter account number"
+                      className="w-full text-sm text-gray-700 font-medium font-mono tracking-wider bg-transparent border-none outline-none p-0 placeholder-gray-400 focus:ring-0"
+                    />
+                  </div>
+                </div>
+                {touched.accountNumber && accountNumberError && <p className="text-xs text-red-500 font-medium mt-2 pl-14 lowercase">{accountNumberError}</p>}
+              </div>
+
+              {/* Confirm Account Number */}
+              <div className="py-5 border-b border-gray-200">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-gray-700 text-lg" style={{ fontVariationSettings: "'wght' 400" }}>verified</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <label className="text-sm font-semibold text-gray-900 lowercase block mb-1">confirm account number</label>
+                    <input
+                      type="tel"
+                      inputMode="numeric"
+                      value={confirmAccountNumber}
+                      onChange={(e) => { userModifiedFields.current.add('confirmAccountNumber'); setConfirmAccountNumber(e.target.value.replace(/\D/g, '')); }}
+                      onBlur={() => handleBlur('confirmAccountNumber')}
+                      placeholder="re-enter account number"
+                      className="w-full text-sm text-gray-700 font-medium font-mono tracking-wider bg-transparent border-none outline-none p-0 placeholder-gray-400 focus:ring-0"
+                    />
+                  </div>
+                </div>
+                {touched.confirmAccountNumber && confirmAccountNumberError && <p className="text-xs text-red-500 font-medium mt-2 pl-14 lowercase">{confirmAccountNumberError}</p>}
+              </div>
+
+              {/* Info note */}
+              <div className="flex items-start gap-3 py-4 px-1">
+                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-gray-500 text-lg" style={{ fontVariationSettings: "'wght' 400" }}>info</span>
+                </div>
+                <p className="text-xs text-gray-500 leading-relaxed lowercase font-medium pt-2">
+                  routing number can be found on the bottom left of your check. ensure the holder name matches your id exactly.
+                </p>
+              </div>
+            </section>
+
+            {/* ── CTAs ── */}
+            <section className="pb-12 space-y-3">
+              <HushhTechCta variant={HushhTechCtaVariant.BLACK} onClick={handleContinue} disabled={loading || !isFormValid()}>
+                {loading ? 'Saving...' : 'Complete Setup'}
+              </HushhTechCta>
+              <HushhTechCta variant={HushhTechCtaVariant.WHITE} onClick={handleSkip}>
+                I'll Do This Later
+              </HushhTechCta>
+            </section>
+
+            {/* ── Trust Badge ── */}
+            <section className="flex flex-col items-center justify-center text-center gap-2 pb-8">
+              <div className="flex items-center gap-1">
+                <span className="material-symbols-outlined text-[12px] text-gray-600">lock</span>
+                <span className="text-[10px] text-gray-600 tracking-wide uppercase font-medium">bank-level security</span>
+              </div>
+              <p className="text-[10px] text-gray-400 lowercase font-medium max-w-xs">
+                your data is encrypted with 256-bit ssl security
+              </p>
+            </section>
+          </>
         )}
+      </main>
     </div>
   );
 }
