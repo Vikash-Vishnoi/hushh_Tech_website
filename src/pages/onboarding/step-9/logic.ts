@@ -147,10 +147,26 @@ export function useStep9Logic() {
     }
   }, [dobMonth, dobYear, daysInMonth, dobDay]);
 
-  const isFormValid = !!(dobMonth && dobDay && dobYear && dobYear.length === 4);
+  /* ─── 18+ age check ─── */
+  const isUnder18 = (() => {
+    if (!dobMonth || !dobDay || !dobYear || dobYear.length !== 4) return false;
+    const birthDate = new Date(parseInt(dobYear), parseInt(dobMonth) - 1, parseInt(dobDay));
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age < 18;
+  })();
+
+  const ageError = isUnder18 ? 'you must be at least 18 years old to continue' : null;
+
+  const isFormValid = !!(dobMonth && dobDay && dobYear && dobYear.length === 4 && !isUnder18);
 
   /* ─── Handlers ─── */
   const handleContinue = async () => {
+    if (isUnder18) { setError('you must be at least 18 years old to continue'); return; }
     if (!isFormValid) { setError('Please enter your date of birth'); return; }
     setLoading(true); setError(null);
 
@@ -211,6 +227,8 @@ export function useStep9Logic() {
     yearOptions,
     dayOptions,
     daysInMonth,
+    isUnder18,
+    ageError,
 
     // Handlers
     handleSSNChange,
