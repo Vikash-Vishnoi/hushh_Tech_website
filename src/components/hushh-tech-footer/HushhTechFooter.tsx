@@ -10,6 +10,7 @@
  *   />
  */
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import hushhLogo from "../images/Hushhogo.png";
 
 /** Enum for footer navigation tabs */
@@ -52,14 +53,41 @@ const FundAIcon: React.FC<{ isActive: boolean }> = ({ isActive }) => {
   );
 };
 
+/** Default route map for each tab */
+const TAB_ROUTES: Record<HushhFooterTab, string> = {
+  [HushhFooterTab.HOME]: "/",
+  [HushhFooterTab.FUND_A]: "/discover-fund-a",
+  [HushhFooterTab.COMMUNITY]: "/community",
+  [HushhFooterTab.PROFILE]: "/profile",
+};
+
 const HushhTechFooter: React.FC<HushhTechFooterProps> = ({
   activeTab,
   onTabChange,
   onLogoClick,
   className = "",
 }) => {
+  const navigate = useNavigate();
   const leftTabs = TABS.slice(0, 2);
   const rightTabs = TABS.slice(2);
+
+  /** Handle tab click — use parent callback if provided, else navigate */
+  const handleTabClick = (tabId: HushhFooterTab) => {
+    if (onTabChange) {
+      onTabChange(tabId);
+    } else {
+      navigate(TAB_ROUTES[tabId]);
+    }
+  };
+
+  /** Handle logo click — use parent callback if provided, else go home */
+  const handleLogoClick = () => {
+    if (onLogoClick) {
+      onLogoClick();
+    } else {
+      navigate("/");
+    }
+  };
 
   const renderTab = (tab: (typeof TABS)[number]) => {
     const isActive = activeTab === tab.id;
@@ -82,7 +110,7 @@ const HushhTechFooter: React.FC<HushhTechFooterProps> = ({
     return (
       <button
         key={tab.id}
-        onClick={() => onTabChange?.(tab.id)}
+        onClick={() => handleTabClick(tab.id)}
         className="flex flex-col items-center gap-1 group cursor-pointer bg-transparent border-none outline-none"
         aria-label={tab.label}
         tabIndex={0}
@@ -114,7 +142,7 @@ const HushhTechFooter: React.FC<HushhTechFooterProps> = ({
           {/* Center Hushh logo button */}
           <div className="absolute left-1/2 -top-6 -translate-x-1/2 z-10">
             <button
-              onClick={onLogoClick}
+              onClick={handleLogoClick}
               className="w-16 h-16 rounded-full flex items-center justify-center border-[3px] border-[#2A2A2A] shadow-[0_0_20px_rgba(255,255,255,0.15)] hover:scale-105 transition-transform overflow-hidden"
               style={{
                 background:
