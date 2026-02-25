@@ -3,6 +3,12 @@
  * Follows the same design language as onboarding steps 1-8,
  * profile page, login/signup — Playfair Display headings,
  * font-medium weight, lowercase, max-w-md centered layout.
+ * 
+ * Apple iOS Core App Colors:
+ * - System Blue (#0066CC) for interactive elements
+ * - System Green (#34C759) for success/verified
+ * - Athens Gray (#F5F5F7) for card backgrounds
+ * - Shark (#1D1D1F) for dark surfaces
  *
  * Logic stays in logic.ts — zero changes there.
  */
@@ -24,7 +30,7 @@ export default function HomePage() {
   return (
     <div
       data-page="home"
-      className="bg-white antialiased text-gray-900 min-h-screen flex flex-col relative selection:bg-black selection:text-white"
+      className="bg-white antialiased text-gray-900 min-h-screen flex flex-col relative selection:bg-hushh-blue selection:text-white"
     >
       {/* ═══ Header ═══ */}
       <HushhTechHeader
@@ -37,9 +43,9 @@ export default function HomePage() {
 
         {/* ── Hero ── */}
         <section className="py-4">
-          <div className="inline-block px-3 py-1 mb-5 border border-gray-200 rounded-full">
-            <span className="text-[10px] tracking-widest uppercase font-medium text-gray-500 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 bg-black rounded-full" />
+          <div className="inline-block px-3 py-1 mb-5 border border-hushh-blue/20 rounded-full bg-hushh-blue/5">
+            <span className="text-[10px] tracking-widest uppercase font-medium text-hushh-blue flex items-center gap-1">
+              <span className="w-1.5 h-1.5 bg-hushh-blue rounded-full" />
               ai-powered investing
             </span>
           </div>
@@ -48,7 +54,7 @@ export default function HomePage() {
             style={playfair}
           >
             investing in <br /> the{" "}
-            <span className="italic text-gray-500">future.</span>
+            <span className="italic text-hushh-blue">future.</span>
           </h1>
           <p className="text-gray-500 text-sm font-light mt-3 leading-relaxed max-w-sm lowercase">
             the world's first ai-powered berkshire hathaway. merging rigorous
@@ -58,8 +64,8 @@ export default function HomePage() {
 
         {/* ── Feature Cards (AI-Powered / Human-Led) ── */}
         <section className="grid grid-cols-2 gap-4">
-          <div className="border border-gray-200 p-5 rounded-2xl flex flex-col justify-between min-h-[180px] hover:bg-gray-50/50 transition-colors">
-            <span className="material-symbols-outlined thin-icon text-3xl mb-4 text-black">
+          <div className="bg-ios-gray-bg p-5 rounded-2xl border border-gray-200/60 flex flex-col justify-between min-h-[180px] hover:border-hushh-blue/30 transition-colors">
+            <span className="material-symbols-outlined thin-icon text-3xl mb-4 text-hushh-blue">
               neurology
             </span>
             <div>
@@ -74,8 +80,8 @@ export default function HomePage() {
               </p>
             </div>
           </div>
-          <div className="border border-gray-200 p-5 rounded-2xl flex flex-col justify-between min-h-[180px] hover:bg-gray-50/50 transition-colors">
-            <span className="material-symbols-outlined thin-icon text-3xl mb-4 text-black">
+          <div className="bg-ios-gray-bg p-5 rounded-2xl border border-gray-200/60 flex flex-col justify-between min-h-[180px] hover:border-hushh-blue/30 transition-colors">
+            <span className="material-symbols-outlined thin-icon text-3xl mb-4 text-ios-dark">
               supervised_user_circle
             </span>
             <div>
@@ -113,7 +119,7 @@ export default function HomePage() {
         {/* ── Trust strip (same pattern as NWS strip on profile) ── */}
         <section className="border-t border-b border-gray-100 py-5 flex justify-center items-center gap-6">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined thin-icon text-lg text-gray-400">
+            <span className="material-symbols-outlined thin-icon text-lg text-ios-green">
               verified_user
             </span>
             <span className="text-[10px] font-medium tracking-widest uppercase text-gray-400">
@@ -122,7 +128,7 @@ export default function HomePage() {
           </div>
           <div className="w-1 h-1 bg-gray-300 rounded-full" />
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined thin-icon text-lg text-gray-400">
+            <span className="material-symbols-outlined thin-icon text-lg text-hushh-blue">
               lock
             </span>
             <span className="text-[10px] font-medium tracking-widest uppercase text-gray-400">
@@ -142,14 +148,14 @@ export default function HomePage() {
           </h2>
           <div className="grid grid-cols-2 gap-x-4 gap-y-10">
             {[
-              { icon: "analytics", title: "data driven", desc: "decisions based on facts, not emotions." },
-              { icon: "savings", title: "low fees", desc: "more of your returns stay in your pocket." },
-              { icon: "workspace_premium", title: "expert vetted", desc: "top-tier financial minds at work." },
-              { icon: "autorenew", title: "automated", desc: "set it and forget it peace of mind." },
+              { icon: "analytics", color: "text-hushh-blue", bg: "bg-hushh-blue/10", title: "data driven", desc: "decisions based on facts, not emotions." },
+              { icon: "savings", color: "text-ios-green", bg: "bg-ios-green/10", title: "low fees", desc: "more of your returns stay in your pocket." },
+              { icon: "workspace_premium", color: "text-ios-yellow", bg: "bg-ios-yellow/10", title: "expert vetted", desc: "top-tier financial minds at work." },
+              { icon: "autorenew", color: "text-hushh-blue", bg: "bg-hushh-blue/10", title: "automated", desc: "set it and forget it peace of mind." },
             ].map((item) => (
               <div key={item.icon} className="flex flex-col items-center text-center gap-3">
-                <div className="w-12 h-12 rounded-full border border-gray-200 flex items-center justify-center bg-white">
-                  <span className="material-symbols-outlined thin-icon">{item.icon}</span>
+                <div className={`w-12 h-12 rounded-full border border-gray-200/60 flex items-center justify-center ${item.bg}`}>
+                  <span className={`material-symbols-outlined thin-icon ${item.color}`}>{item.icon}</span>
                 </div>
                 <div>
                   <h4 className="font-medium text-sm mb-1 lowercase">{item.title}</h4>
@@ -164,10 +170,10 @@ export default function HomePage() {
 
         {/* ── Fund A Card ── */}
         <section className="relative mt-4">
-          <div className="bg-black text-white p-8 rounded-2xl relative overflow-hidden shadow-2xl">
-            {/* Glow effects */}
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-3xl" />
-            <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-white/5 to-transparent" />
+          <div className="bg-ios-dark text-white p-8 rounded-2xl relative overflow-hidden shadow-2xl">
+            {/* Glow effects — Apple blue accent */}
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-hushh-blue/15 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-hushh-blue/5 to-transparent" />
 
             <div className="relative z-10 flex flex-col gap-6">
               <div className="flex justify-between items-start">
@@ -182,7 +188,7 @@ export default function HomePage() {
                     fund a
                   </h2>
                 </div>
-                <span className="bg-white/10 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-medium uppercase tracking-wider border border-white/10">
+                <span className="bg-hushh-blue/20 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-medium uppercase tracking-wider border border-hushh-blue/30 text-hushh-blue">
                   high growth
                 </span>
               </div>
@@ -190,7 +196,7 @@ export default function HomePage() {
               <div className="space-y-4 my-2">
                 <div>
                   <span className="text-xs text-white/50 block mb-1 lowercase">target net irr</span>
-                  <span className="text-4xl font-mono font-light tracking-tighter">
+                  <span className="text-4xl font-mono font-light tracking-tighter text-ios-green">
                     18-23%
                   </span>
                 </div>
@@ -208,10 +214,10 @@ export default function HomePage() {
                 aria-label="View performance details"
                 onKeyDown={(e) => { if (e.key === 'Enter') onNavigate("/discover-fund-a"); }}
               >
-                <span className="text-xs font-medium tracking-wide uppercase lowercase">
+                <span className="text-xs font-medium tracking-wide uppercase text-hushh-blue">
                   performance details
                 </span>
-                <span className="material-symbols-outlined thin-icon text-sm group-hover:translate-x-1 transition-transform">
+                <span className="material-symbols-outlined thin-icon text-sm text-hushh-blue group-hover:translate-x-1 transition-transform">
                   arrow_forward
                 </span>
               </div>
@@ -223,12 +229,12 @@ export default function HomePage() {
         <section>
           <div className="grid grid-cols-2 gap-4">
             {[
-              { icon: "rocket_launch", color: "text-black", title: "high growth", desc: "accelerated returns strategy" },
-              { icon: "pie_chart", color: "text-black", title: "diversified", desc: "multi-sector allocation" },
-              { icon: "trending_up", color: "text-black", title: "liquid", desc: "quarterly redemption windows" },
-              { icon: "security", color: "text-black", title: "secure", desc: "regulated custodian assets" },
+              { icon: "rocket_launch", color: "text-hushh-blue", title: "high growth", desc: "accelerated returns strategy" },
+              { icon: "pie_chart", color: "text-ios-yellow", title: "diversified", desc: "multi-sector allocation" },
+              { icon: "trending_up", color: "text-ios-green", title: "liquid", desc: "quarterly redemption windows" },
+              { icon: "security", color: "text-hushh-blue", title: "secure", desc: "regulated custodian assets" },
             ].map((item) => (
-              <div key={item.icon} className="border border-gray-200 p-4 rounded-2xl hover:bg-gray-50/50 transition-colors">
+              <div key={item.icon} className="bg-ios-gray-bg border border-gray-200/60 p-4 rounded-2xl hover:border-hushh-blue/30 transition-colors">
                 <span className={`material-symbols-outlined thin-icon ${item.color} mb-2`}>
                   {item.icon}
                 </span>

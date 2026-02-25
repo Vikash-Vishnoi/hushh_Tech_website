@@ -7,7 +7,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        "hushh-blue": "#2563EB",
+        // Apple iOS Core System Colors
+        "hushh-blue": "#0066CC",          // iOS System Blue — links, buttons, active states
+        "ios-green": "#34C759",           // iOS System Green — success, verified
+        "ios-yellow": "#FFD60A",          // iOS System Yellow — warnings, highlights
+        "ios-red": "#FF3B30",             // iOS System Red — errors, destructive
+        "ios-pink": "#FF2D55",            // iOS System Pink — music, photos accent
+        "ios-gray-bg": "#F5F5F7",         // Athens Gray — card backgrounds
+        "ios-dark": "#1D1D1F",            // Shark — dark surfaces, Fund A card
         "hushh-text-muted": "#6B7280",
       },
       fontFamily: {
