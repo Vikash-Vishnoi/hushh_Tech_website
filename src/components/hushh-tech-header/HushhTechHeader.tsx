@@ -51,7 +51,7 @@ const HushhTechHeader: React.FC<HushhTechHeaderProps> = ({
         {/* Hamburger menu button */}
         <button
           onClick={() => setIsDrawerOpen(true)}
-          className="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center hover:bg-indigo-600 transition-colors"
+          className="w-10 h-10 rounded-full bg-black flex items-center justify-center hover:bg-black/80 transition-colors"
           aria-label="Open menu"
           tabIndex={0}
         >
