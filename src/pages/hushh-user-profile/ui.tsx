@@ -93,25 +93,16 @@ const HushhUserProfilePage: React.FC = () => {
             hushh ai automatically detects your investment preferences and risk
             appetite to tailor opportunities specifically for you.
           </p>
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={loading}
-            className="w-full bg-black text-white py-3.5 px-6 flex items-center justify-between group hover:bg-black/90 transition-all disabled:opacity-50"
-          >
-            <span className="text-sm font-medium lowercase">
-              {loading
-                ? "generating..."
-                : investorProfile
-                ? "update profile"
-                : hasOnboardingData
-                ? "enhance with ai"
-                : "generate investor profile"}
-            </span>
-            <span className="material-symbols-outlined text-lg group-hover:translate-x-1 transition-transform">
-              auto_awesome
-            </span>
-          </button>
+          <HushhTechCta variant={HushhTechCtaVariant.BLACK} onClick={handleSave} disabled={loading}>
+            {loading
+              ? "Generating..."
+              : investorProfile
+              ? "Update Profile"
+              : hasOnboardingData
+              ? "Enhance with AI"
+              : "Generate Investor Profile"}
+            <span className="material-symbols-outlined text-lg">auto_awesome</span>
+          </HushhTechCta>
         </section>
 
         {/* ── Your Hushh Profile ── */}
