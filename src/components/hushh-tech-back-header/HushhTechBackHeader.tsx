@@ -10,6 +10,7 @@
  */
 import React, { useState } from "react";
 import HushhTechNavDrawer from "../hushh-tech-nav-drawer/HushhTechNavDrawer";
+import HushhTechFaqSheet from "../hushh-tech-faq-sheet/HushhTechFaqSheet";
 
 interface HushhTechBackHeaderProps {
   /** Callback when back arrow is clicked */
@@ -35,6 +36,7 @@ const HushhTechBackHeader: React.FC<HushhTechBackHeaderProps> = ({
   className = "",
 }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isFaqOpen, setIsFaqOpen] = useState(false);
 
   return (
     <>
@@ -69,7 +71,7 @@ const HushhTechBackHeader: React.FC<HushhTechBackHeaderProps> = ({
 
         {showRightButton && rightType === "label" && (
           <button
-            onClick={onRightClick}
+            onClick={onRightClick ?? (rightLabel?.toLowerCase() === "faqs" ? () => setIsFaqOpen(true) : undefined)}
             className="h-10 px-5 border border-black text-[11px] font-bold tracking-widest uppercase text-gray-900 hover:bg-black hover:text-white transition-colors flex items-center justify-center"
             aria-label={rightLabel}
             tabIndex={0}
@@ -86,6 +88,12 @@ const HushhTechBackHeader: React.FC<HushhTechBackHeaderProps> = ({
           onClose={() => setIsDrawerOpen(false)}
         />
       )}
+
+      {/* FAQ Bottom Sheet — auto-wired when rightLabel is "FAQs" */}
+      <HushhTechFaqSheet
+        isOpen={isFaqOpen}
+        onClose={() => setIsFaqOpen(false)}
+      />
     </>
   );
 };
