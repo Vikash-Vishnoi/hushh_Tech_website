@@ -1,220 +1,230 @@
 /**
- * Hushh Agents - Home Page
- * 
- * Simple agent selection - NO restrictions, everyone has full access.
+ * Hushh Agents — Home Page
+ * Clean design matching login/home pages.
+ * Playfair Display headings, iOS colors, centered layout.
  */
-
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { FiLogOut, FiMessageCircle, FiMic, FiLock, FiArrowRight, FiGlobe } from 'react-icons/fi';
-import { getActiveAgents, ROUTES, HUSHH_BRANDING, SUPPORTED_LANGUAGES } from '../core/constants';
-import type { HushhAgentUser } from '../core/types';
+import { useState, useEffect } from 'react';
+import HushhTechHeader from '../../components/hushh-tech-header/HushhTechHeader';
+import HushhTechFooter from '../../components/hushh-tech-footer/HushhTechFooter';
+import HushhTechCta, { HushhTechCtaVariant } from '../../components/hushh-tech-cta/HushhTechCta';
+import { useAuth } from '../hooks/useAuth';
+import HushhLogo from '../../components/images/Hushhogo.png';
 
+/* ── Playfair heading style ── */
 const playfair = { fontFamily: "'Playfair Display', serif" };
 
-interface HomePageProps {
-  user: HushhAgentUser | null;
-  onSignOut: () => void;
-}
-
-const HomePage: React.FC<HomePageProps> = ({ user, onSignOut }) => {
+export default function AgentsHomePage() {
   const navigate = useNavigate();
-  const agents = getActiveAgents();
-  
-  const handleAgentSelect = (agentId: string) => {
-    navigate(ROUTES.CHAT_WITH_AGENT(agentId));
-  };
+  const { isAuthenticated, isLoading, user } = useAuth();
+  const [mounted, setMounted] = useState(false);
 
-  // Default to Hushh agent for quick start
-  const handleQuickStart = () => {
-    navigate(ROUTES.CHAT_WITH_AGENT('hushh'));
-  };
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      navigate('/login', { state: { redirectTo: '/hushh-agents' } });
+    }
+  }, [isAuthenticated, isLoading, navigate]);
+
+  if (isLoading || !mounted) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-pulse flex flex-col items-center gap-4">
+          <div className="w-16 h-16 rounded-2xl bg-gray-100" />
+          <div className="w-32 h-4 bg-gray-100 rounded" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white text-gray-900 antialiased">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-hushh-blue to-blue-600 flex items-center justify-center">
-              <span className="text-white text-lg font-bold">H</span>
-            </div>
-            <div>
-              <h1 
-                className="text-lg font-semibold text-black"
-                style={playfair}
-              >
-                {HUSHH_BRANDING.FULL_NAME}
-              </h1>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <span className="hidden sm:block text-sm text-gray-500">{user?.email}</span>
-            <button
-              onClick={onSignOut}
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-              aria-label="Sign out"
-            >
-              <FiLogOut className="w-5 h-5 text-gray-500" />
-            </button>
-          </div>
-        </div>
-      </header>
+    <div className="bg-white text-gray-900 min-h-screen antialiased flex flex-col selection:bg-hushh-blue selection:text-white">
+      {/* ═══ Header ═══ */}
+      <HushhTechHeader />
 
-      {/* Hero Section */}
-      <main className="max-w-5xl mx-auto px-4 py-12">
-        {/* Welcome */}
-        <section className="text-center mb-12">
-          <motion.h2 
-            className="text-4xl sm:text-5xl font-normal text-black mb-4"
-            style={playfair}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            What can I help you with?
-          </motion.h2>
-          <motion.p 
-            className="text-gray-500 text-lg max-w-lg mx-auto mb-8"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-          >
-            Chat with Hushh Intelligence in Hindi, English, or Tamil.
-            Voice and text — completely unlimited.
-          </motion.p>
-
-          {/* Quick Start Button */}
-          <motion.button
-            onClick={handleQuickStart}
-            className="inline-flex items-center gap-2 px-8 py-4 bg-hushh-blue text-white rounded-full text-lg font-medium hover:bg-hushh-blue/90 transition-colors shadow-lg shadow-hushh-blue/25"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.3 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Start Chatting
-            <FiArrowRight className="w-5 h-5" />
-          </motion.button>
-        </section>
-
-        {/* Language Support */}
-        <section className="flex flex-wrap items-center justify-center gap-3 mb-16">
-          {SUPPORTED_LANGUAGES.map((lang) => (
-            <span 
-              key={lang.code}
-              className="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm flex items-center gap-2 hover:border-hushh-blue transition-colors"
-            >
-              <span>{lang.flag}</span>
-              <span className="text-gray-700">{lang.nativeName}</span>
+      {/* ═══ Main Content ═══ */}
+      <main className="flex-1 px-6 pb-32 max-w-2xl mx-auto w-full">
+        
+        {/* ── Hero Section ── */}
+        <section className="pt-12 pb-8">
+          <div className="inline-block px-3 py-1 mb-5 border border-hushh-blue/20 rounded-full bg-hushh-blue/5">
+            <span className="text-[10px] tracking-widest uppercase font-medium text-hushh-blue flex items-center gap-1">
+              <span className="w-1.5 h-1.5 bg-hushh-blue rounded-full animate-pulse" />
+              AI Agents Platform
             </span>
-          ))}
-        </section>
-
-        {/* Agents Grid */}
-        <section className="mb-16">
-          <h3 
-            className="text-xl font-normal text-center mb-8 text-gray-800"
+          </div>
+          
+          <h1 
+            className="text-[2.5rem] md:text-[3rem] leading-[1.1] font-normal text-black tracking-tight font-serif"
             style={playfair}
           >
-            Choose Your Agent
-          </h3>
+            Meet Your <br className="md:hidden" />
+            <span className="text-gray-400 italic font-light">AI Agents.</span>
+          </h1>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {agents.map((agent, index) => (
-              <motion.div
-                key={agent.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 + index * 0.1 }}
-              >
-                <button
-                  onClick={() => handleAgentSelect(agent.id)}
-                  className="w-full p-6 rounded-2xl text-left transition-all duration-200 border-2 border-gray-100 hover:border-hushh-blue hover:shadow-xl hover:shadow-hushh-blue/10 bg-white group"
-                >
-                  <div className="flex items-start gap-4">
-                    {/* Avatar */}
-                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-gradient-to-br from-hushh-blue to-blue-600 group-hover:scale-110 transition-transform">
-                      <span className="text-white text-2xl font-bold">
-                        {agent.name.charAt(0)}
-                      </span>
-                    </div>
+          <p className="text-gray-500 text-sm font-light mt-4 leading-relaxed max-w-md">
+            Intelligent assistants powered by GCP's most advanced AI. 
+            Chat in English, Hindi, or Tamil with voice support.
+          </p>
+        </section>
 
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-semibold text-lg text-gray-900">{agent.name}</h3>
-                        <FiArrowRight className="w-4 h-4 text-gray-400 group-hover:text-hushh-blue group-hover:translate-x-1 transition-all" />
-                      </div>
-                      <p className="text-sm text-gray-500 line-clamp-2 mb-3">
-                        {agent.description}
-                      </p>
-                      <div className="flex items-center gap-2 text-xs text-gray-400">
-                        <span className="flex items-center gap-1">
-                          <FiMessageCircle className="w-3 h-3" /> Text
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <FiMic className="w-3 h-3" /> Voice
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <FiGlobe className="w-3 h-3" /> Multi-lingual
-                        </span>
-                      </div>
-                    </div>
+        {/* ── Agent Card ── */}
+        <section className="py-6">
+          <div 
+            className="group bg-ios-dark text-white p-6 md:p-8 rounded-2xl relative overflow-hidden shadow-xl cursor-pointer hover:shadow-2xl transition-all duration-300"
+            onClick={() => navigate('/hushh-agents/chat')}
+            role="button"
+            tabIndex={0}
+            aria-label="Start chatting with Hushh AI"
+            onKeyDown={(e) => { if (e.key === 'Enter') navigate('/hushh-agents/chat'); }}
+          >
+            {/* Glow effects */}
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-hushh-blue/20 rounded-full blur-3xl group-hover:bg-hushh-blue/30 transition-colors" />
+            <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-hushh-blue/10 to-transparent" />
+
+            <div className="relative z-10 flex flex-col gap-6">
+              {/* Agent Header */}
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-hushh-blue/20 to-hushh-blue/5 flex items-center justify-center border border-white/10">
+                    <img src={HushhLogo} alt="Hushh" className="w-10 h-10 md:w-12 md:h-12 object-contain" />
                   </div>
-                </button>
-              </motion.div>
+                  <div>
+                    <span className="text-[10px] font-medium tracking-widest uppercase text-white/50 block">
+                      Primary Agent
+                    </span>
+                    <h2 className="text-2xl md:text-3xl font-medium font-serif" style={playfair}>
+                      Hushh
+                    </h2>
+                  </div>
+                </div>
+                <span className="bg-ios-green/20 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-medium uppercase tracking-wider border border-ios-green/30 text-ios-green">
+                  Online
+                </span>
+              </div>
+
+              {/* Agent Description */}
+              <p className="text-white/70 text-sm font-light leading-relaxed">
+                Your intelligent AI companion. Ask questions, get help with analysis, 
+                creative writing, coding, and more.
+              </p>
+
+              {/* Capabilities */}
+              <div className="flex flex-wrap gap-2">
+                {['Multi-language', 'Voice Chat', 'Code Help', 'Analysis'].map((cap) => (
+                  <span 
+                    key={cap}
+                    className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-full text-[10px] font-medium uppercase tracking-wider text-white/60"
+                  >
+                    {cap}
+                  </span>
+                ))}
+              </div>
+
+              {/* Start Chat CTA */}
+              <div className="pt-4 border-t border-white/10 flex items-center justify-between">
+                <span className="text-sm font-medium text-hushh-blue">
+                  Start Conversation
+                </span>
+                <span className="material-symbols-outlined text-hushh-blue group-hover:translate-x-2 transition-transform">
+                  arrow_forward
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Features Grid ── */}
+        <section className="py-8">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-2 font-medium">Features</p>
+          <h2 className="text-xl md:text-2xl font-medium mb-6 tracking-tight font-serif" style={playfair}>
+            What Hushh Can Do
+          </h2>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { icon: 'chat', color: 'text-hushh-blue', bg: 'bg-hushh-blue/10', title: 'Chat', desc: 'Natural conversations' },
+              { icon: 'translate', color: 'text-ios-green', bg: 'bg-ios-green/10', title: 'Languages', desc: 'EN • HI • TA' },
+              { icon: 'mic', color: 'text-amber-500', bg: 'bg-amber-500/10', title: 'Voice', desc: 'Speak naturally' },
+              { icon: 'code', color: 'text-purple-500', bg: 'bg-purple-500/10', title: 'Code', desc: 'Programming help' },
+            ].map((item) => (
+              <div 
+                key={item.icon} 
+                className="bg-ios-gray-bg border border-gray-200/60 p-4 rounded-2xl hover:border-hushh-blue/30 transition-colors"
+              >
+                <div className={`w-10 h-10 rounded-xl ${item.bg} flex items-center justify-center mb-3`}>
+                  <span className={`material-symbols-outlined ${item.color}`}>{item.icon}</span>
+                </div>
+                <h5 className="font-medium text-sm">{item.title}</h5>
+                <p className="text-[10px] text-gray-500 font-light mt-1">{item.desc}</p>
+              </div>
             ))}
           </div>
         </section>
 
-        {/* Features */}
-        <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
-          <FeatureCard
-            icon={<FiMessageCircle className="w-6 h-6" />}
-            title="Unlimited Chat"
-            description="No message limits, chat as much as you want"
-          />
-          <FeatureCard
-            icon={<FiMic className="w-6 h-6" />}
-            title="Voice Support"
-            description="Speak naturally in any supported language"
-          />
-          <FeatureCard
-            icon={<FiLock className="w-6 h-6" />}
-            title="Private & Secure"
-            description="Your conversations stay private"
-          />
+        {/* ── Coming Soon Section ── */}
+        <section className="py-8">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-gray-400 mb-2 font-medium">Coming Soon</p>
+          <h2 className="text-xl md:text-2xl font-medium mb-6 tracking-tight font-serif" style={playfair}>
+            More Agents
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              { name: 'Kai', desc: 'Investment analysis & market insights', icon: 'trending_up' },
+              { name: 'Luna', desc: 'Document processing & summaries', icon: 'description' },
+            ].map((agent) => (
+              <div 
+                key={agent.name}
+                className="bg-ios-gray-bg border border-gray-200/60 p-5 rounded-2xl flex items-center gap-4 opacity-60"
+              >
+                <div className="w-12 h-12 rounded-2xl bg-gray-200/60 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-gray-400">{agent.icon}</span>
+                </div>
+                <div>
+                  <h5 className="font-medium text-sm flex items-center gap-2">
+                    {agent.name}
+                    <span className="text-[8px] uppercase tracking-wider bg-gray-200 px-2 py-0.5 rounded-full text-gray-500">
+                      Soon
+                    </span>
+                  </h5>
+                  <p className="text-[11px] text-gray-500 font-light mt-0.5">{agent.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ── Primary CTA ── */}
+        <section className="py-8">
+          <HushhTechCta
+            onClick={() => navigate('/hushh-agents/chat')}
+            variant={HushhTechCtaVariant.BLACK}
+          >
+            <span className="material-symbols-outlined">chat</span>
+            Start Chatting with Hushh
+          </HushhTechCta>
+        </section>
+
+        {/* ── Trust Badge ── */}
+        <section className="flex flex-col items-center justify-center text-center gap-2 py-8">
+          <div className="flex items-center gap-1">
+            <span className="material-symbols-outlined text-[12px] text-hushh-blue">lock</span>
+            <span className="text-[10px] text-gray-400 tracking-wide uppercase font-medium">
+              Secure • Private • No Data Stored
+            </span>
+          </div>
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="py-8 text-center border-t border-gray-100">
-        <p className="text-xs text-gray-400">
-          {HUSHH_BRANDING.POWERED_BY}
-        </p>
-      </footer>
+      {/* ═══ Footer ═══ */}
+      <HushhTechFooter />
     </div>
   );
-};
-
-// Feature Card Component
-interface FeatureCardProps {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
 }
-
-const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, description }) => (
-  <div className="p-5 rounded-xl text-center bg-white border border-gray-100">
-    <div className="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center bg-hushh-blue/10 text-hushh-blue">
-      {icon}
-    </div>
-    <h4 className="font-medium text-gray-900 mb-1">{title}</h4>
-    <p className="text-sm text-gray-500">{description}</p>
-  </div>
-);
-
-export default HomePage;

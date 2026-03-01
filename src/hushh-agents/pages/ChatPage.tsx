@@ -1,320 +1,211 @@
 /**
- * Hushh Agents - Chat Page
- * 
- * Production-grade chat interface similar to Claude AI.
- * Features: Text chat, voice input, multi-language support, chat history.
+ * Hushh Agents — Chat Page
+ * Clean, modern chat interface matching the design system.
+ * Desktop-optimized with sidebar for conversation controls.
  */
-
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  FiArrowLeft, 
-  FiSend, 
-  FiMic, 
-  FiMicOff,
-  FiGlobe,
-  FiMoreVertical,
-  FiTrash2,
-  FiCopy,
-  FiCheck,
-  FiLoader
-} from 'react-icons/fi';
-import { 
-  getAgentById, 
-  ROUTES, 
-  HUSHH_BRANDING, 
-  SUPPORTED_LANGUAGES,
-  type LanguageCode
-} from '../core/constants';
-import type { ChatMessage, HushhAgentUser } from '../core/types';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import HushhTechBackHeader from '../../components/hushh-tech-back-header/HushhTechBackHeader';
+import HushhLogo from '../../components/images/Hushhogo.png';
+import { useAuth } from '../hooks/useAuth';
 import { 
   sendChatMessage, 
   createUserMessage, 
-  createAssistantMessage,
+  createAssistantMessage 
 } from '../services/hushhIntelligenceService';
+import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE, type LanguageCode } from '../core/constants';
+import type { ChatMessage, SupportedLanguage } from '../core/types';
 
+/* ── Playfair heading style ── */
 const playfair = { fontFamily: "'Playfair Display', serif" };
 
-interface ChatPageProps {
-  user: HushhAgentUser | null;
-}
-
-const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
-  const { agentId } = useParams<{ agentId: string }>();
+export default function ChatPage() {
   const navigate = useNavigate();
-  const agent = getAgentById(agentId || 'hushh');
+  const { isAuthenticated, isLoading, user } = useAuth();
   
   // Chat state
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [inputValue, setInputValue] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [language, setLanguage] = useState<LanguageCode>('en-US');
-  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
-  
-  // Voice state
-  const [isListening, setIsListening] = useState(false);
-  const [voiceSupported, setVoiceSupported] = useState(false);
+  const [inputText, setInputText] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState<SupportedLanguage>(DEFAULT_LANGUAGE);
+  const [error, setError] = useState<string | null>(null);
   
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const recognitionRef = useRef<SpeechRecognitionCompat | null>(null);
   
-  // Check voice support on mount
-  useEffect(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      setVoiceSupported(true);
-      recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = true;
-      
-      recognitionRef.current.onresult = (event: SpeechRecognitionEventCompat) => {
-        let transcript = '';
-        for (let i = 0; i < event.results.length; i++) {
-          transcript += event.results[i][0].transcript;
-        }
-        setInputValue(transcript);
-      };
-      
-      recognitionRef.current.onend = () => {
-        setIsListening(false);
-      };
-      
-      recognitionRef.current.onerror = () => {
-        setIsListening(false);
-      };
-    }
-  }, []);
-  
-  // Auto-scroll to bottom when messages change
-  useEffect(() => {
+  // Scroll to bottom when messages change
+  const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-  
-  // Focus input on mount
-  useEffect(() => {
-    inputRef.current?.focus();
   }, []);
   
-  // Handle language change for speech recognition
   useEffect(() => {
-    if (recognitionRef.current) {
-      recognitionRef.current.lang = language;
+    scrollToBottom();
+  }, [messages, scrollToBottom]);
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      navigate('/login', { state: { redirectTo: '/hushh-agents/chat' } });
     }
-  }, [language]);
-  
-  // Send message handler
-  const handleSendMessage = useCallback(async () => {
-    const trimmedInput = inputValue.trim();
-    if (!trimmedInput || isLoading) return;
+  }, [isAuthenticated, isLoading, navigate]);
+
+  // Handle send message
+  const handleSend = async () => {
+    const text = inputText.trim();
+    if (!text || isTyping) return;
+    
+    setError(null);
     
     // Add user message
-    const userMessage = createUserMessage(trimmedInput);
+    const userMessage = createUserMessage(text);
     setMessages(prev => [...prev, userMessage]);
-    setInputValue('');
-    setIsLoading(true);
+    setInputText('');
+    setIsTyping(true);
+    
+    // Focus back on input
+    inputRef.current?.focus();
     
     try {
-      // Convert messages to history format
-      const history = messages.map(msg => ({
-        role: msg.role,
-        content: msg.content,
+      // Prepare history for API
+      const history = messages.map(m => ({
+        role: m.role,
+        content: m.content,
       }));
       
-      // Send to API
+      // Send to Hushh Intelligence
       const response = await sendChatMessage({
-        message: trimmedInput,
+        message: text,
         history,
-        agentId: agentId || 'hushh',
-        language,
-        systemPrompt: agent?.systemPrompt,
+        language: selectedLanguage,
+        agentId: 'hushh',
       });
       
       if (response.success) {
         const assistantMessage = createAssistantMessage(response.message);
         setMessages(prev => [...prev, assistantMessage]);
       } else {
-        // Show error as assistant message
-        const errorMessage = createAssistantMessage(
-          response.error || 'Sorry, I encountered an error. Please try again.'
-        );
-        setMessages(prev => [...prev, errorMessage]);
+        setError(response.error || 'Failed to get response');
       }
-    } catch (error) {
-      const errorMessage = createAssistantMessage(
-        'Sorry, something went wrong. Please check your connection and try again.'
-      );
-      setMessages(prev => [...prev, errorMessage]);
+    } catch (err) {
+      console.error('Chat error:', err);
+      setError('Something went wrong. Please try again.');
     } finally {
-      setIsLoading(false);
-      inputRef.current?.focus();
-    }
-  }, [inputValue, isLoading, messages, agentId, language, agent]);
-  
-  // Handle key press
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
-  
-  // Toggle voice input
-  const toggleVoiceInput = () => {
-    if (!recognitionRef.current) return;
-    
-    if (isListening) {
-      recognitionRef.current.stop();
-      setIsListening(false);
-    } else {
-      recognitionRef.current.start();
-      setIsListening(true);
-    }
-  };
-  
-  // Copy message to clipboard
-  const copyMessage = async (message: ChatMessage) => {
-    await navigator.clipboard.writeText(message.content);
-    setCopiedId(message.id);
-    setTimeout(() => setCopiedId(null), 2000);
-  };
-  
-  // Clear chat
-  const clearChat = () => {
-    setMessages([]);
-  };
-  
-  // Get greeting based on language
-  const getGreeting = () => {
-    switch (language) {
-      case 'hi-IN':
-        return 'नमस्ते! मैं कैसे मदद कर सकता हूं?';
-      case 'ta-IN':
-        return 'வணக்கம்! நான் எப்படி உதவ முடியும்?';
-      default:
-        return 'Hello! How can I help you today?';
+      setIsTyping(false);
     }
   };
 
+  // Handle key press
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  // Clear chat
+  const handleClearChat = () => {
+    setMessages([]);
+    setError(null);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="animate-pulse flex flex-col items-center gap-4">
+          <div className="w-16 h-16 rounded-2xl bg-gray-100" />
+          <div className="w-32 h-4 bg-gray-100 rounded" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) return null;
+
   return (
-    <div className="h-screen flex flex-col bg-white">
-      {/* Header */}
-      <header className="flex-shrink-0 bg-white border-b border-gray-100 px-4 py-3">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
+    <div className="bg-white text-gray-900 min-h-screen antialiased flex flex-col selection:bg-hushh-blue selection:text-white">
+      {/* ═══ Header ═══ */}
+      <HushhTechBackHeader 
+        onBackClick={() => navigate('/hushh-agents')}
+        showRightButton={false}
+      />
+
+      {/* ═══ Main Chat Area ═══ */}
+      <main className="flex-1 flex flex-col max-w-4xl mx-auto w-full px-4 md:px-6">
+        
+        {/* ── Chat Header Bar ── */}
+        <div className="flex items-center justify-between py-4 border-b border-gray-100">
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigate(ROUTES.HOME)}
-              className="p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors"
-              aria-label="Back"
-            >
-              <FiArrowLeft className="w-5 h-5 text-gray-600" />
-            </button>
-            
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-hushh-blue to-blue-600 flex items-center justify-center">
-              <span className="text-white font-bold">{agent?.name.charAt(0) || 'H'}</span>
+            <div className="w-10 h-10 rounded-xl bg-ios-dark flex items-center justify-center">
+              <img src={HushhLogo} alt="Hushh" className="w-7 h-7 object-contain" />
             </div>
-            
             <div>
-              <h1 className="font-semibold text-gray-900" style={playfair}>
-                {agent?.name || 'Hushh'}
-              </h1>
-              <p className="text-xs text-gray-500">
-                {isLoading ? HUSHH_BRANDING.THINKING_TEXT : 'Online'}
-              </p>
+              <h2 className="text-sm font-medium">Hushh</h2>
+              <span className="text-[10px] text-ios-green flex items-center gap-1">
+                <span className="w-1.5 h-1.5 bg-ios-green rounded-full" />
+                Online
+              </span>
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {/* Language Selector */}
-            <div className="relative">
-              <button
-                onClick={() => setShowLanguageMenu(!showLanguageMenu)}
-                className="flex items-center gap-2 px-3 py-2 rounded-full hover:bg-gray-100 transition-colors text-sm"
-              >
-                <FiGlobe className="w-4 h-4 text-gray-500" />
-                <span className="hidden sm:inline text-gray-600">
-                  {SUPPORTED_LANGUAGES.find(l => l.code === language)?.flag}
-                </span>
-              </button>
-              
-              <AnimatePresence>
-                {showLanguageMenu && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="absolute right-0 top-full mt-2 bg-white rounded-xl shadow-xl border border-gray-100 py-2 min-w-[160px] z-50"
-                  >
-                    {SUPPORTED_LANGUAGES.map((lang) => (
-                      <button
-                        key={lang.code}
-                        onClick={() => {
-                          setLanguage(lang.code);
-                          setShowLanguageMenu(false);
-                        }}
-                        className={`w-full px-4 py-2 text-left text-sm flex items-center gap-3 hover:bg-gray-50 ${
-                          language === lang.code ? 'text-hushh-blue font-medium' : 'text-gray-700'
-                        }`}
-                      >
-                        <span>{lang.flag}</span>
-                        <span>{lang.nativeName}</span>
-                      </button>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            <select
+              value={selectedLanguage}
+              onChange={(e) => setSelectedLanguage(e.target.value as SupportedLanguage)}
+              className="text-xs bg-ios-gray-bg border border-gray-200/60 rounded-lg px-3 py-2 focus:outline-none focus:border-hushh-blue/50"
+            >
+              {SUPPORTED_LANGUAGES.map((lang) => (
+                <option key={lang.code} value={lang.code}>
+                  {lang.flag} {lang.name}
+                </option>
+              ))}
+            </select>
             
-            {/* More Options */}
-            <div className="relative group">
-              <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-                <FiMoreVertical className="w-5 h-5 text-gray-500" />
+            {/* Clear Chat Button */}
+            {messages.length > 0 && (
+              <button
+                onClick={handleClearChat}
+                className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <span className="material-symbols-outlined text-sm">delete_sweep</span>
+                Clear
               </button>
-              <div className="absolute right-0 top-full mt-2 bg-white rounded-xl shadow-xl border border-gray-100 py-2 min-w-[140px] z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
-                <button
-                  onClick={clearChat}
-                  className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                >
-                  <FiTrash2 className="w-4 h-4" />
-                  Clear Chat
-                </button>
-              </div>
-            </div>
+            )}
           </div>
         </div>
-      </header>
-      
-      {/* Messages Area */}
-      <main className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto px-4 py-6">
+
+        {/* ── Messages Area ── */}
+        <div className="flex-1 overflow-y-auto py-6 min-h-[400px] max-h-[calc(100vh-300px)]">
           {messages.length === 0 ? (
             // Empty state
-            <div className="flex flex-col items-center justify-center h-full py-20 text-center">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-hushh-blue to-blue-600 flex items-center justify-center mb-6">
-                <span className="text-white text-3xl font-bold">H</span>
+            <div className="flex flex-col items-center justify-center h-full text-center px-4">
+              <div className="w-20 h-20 rounded-2xl bg-ios-dark flex items-center justify-center mb-6">
+                <img src={HushhLogo} alt="Hushh" className="w-14 h-14 object-contain" />
               </div>
-              <h2 className="text-2xl font-normal text-gray-900 mb-2" style={playfair}>
-                {getGreeting()}
+              <h2 
+                className="text-2xl md:text-3xl font-normal text-black tracking-tight font-serif mb-3"
+                style={playfair}
+              >
+                Hello{user?.name ? `, ${user.name.split(' ')[0]}` : ''}!
               </h2>
-              <p className="text-gray-500 max-w-md">
-                Type a message or use voice input to start chatting with {agent?.name || 'Hushh'}.
+              <p className="text-gray-500 text-sm font-light max-w-md leading-relaxed">
+                I'm Hushh, your AI assistant. Ask me anything — I can help with questions, 
+                analysis, writing, coding, and more.
               </p>
               
-              {/* Quick prompts */}
-              <div className="flex flex-wrap justify-center gap-2 mt-8">
+              {/* Quick Prompts */}
+              <div className="mt-8 flex flex-wrap justify-center gap-2">
                 {[
-                  'Tell me about yourself',
-                  'Help me write an email',
-                  'Explain something complex',
-                  'Creative writing help',
+                  'Explain quantum computing',
+                  'Write a poem about AI',
+                  'Help me with Python code',
+                  'मुझे हिंदी में बताओ',
                 ].map((prompt) => (
                   <button
                     key={prompt}
-                    onClick={() => setInputValue(prompt)}
-                    className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm text-gray-600 hover:border-hushh-blue hover:text-hushh-blue transition-colors"
+                    onClick={() => setInputText(prompt)}
+                    className="text-xs px-4 py-2 bg-ios-gray-bg border border-gray-200/60 rounded-full text-gray-600 hover:border-hushh-blue/30 hover:text-hushh-blue transition-colors"
                   >
                     {prompt}
                   </button>
@@ -325,244 +216,128 @@ const ChatPage: React.FC<ChatPageProps> = ({ user }) => {
             // Messages list
             <div className="space-y-6">
               {messages.map((message) => (
-                <MessageBubble
+                <div
                   key={message.id}
-                  message={message}
-                  onCopy={() => copyMessage(message)}
-                  isCopied={copiedId === message.id}
-                />
+                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-[85%] md:max-w-[70%] ${
+                      message.role === 'user'
+                        ? 'bg-ios-dark text-white rounded-2xl rounded-br-md px-4 py-3'
+                        : 'bg-ios-gray-bg text-gray-900 rounded-2xl rounded-bl-md px-4 py-3 border border-gray-200/60'
+                    }`}
+                  >
+                    {message.role === 'assistant' && (
+                      <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-200/40">
+                        <div className="w-5 h-5 rounded-md bg-ios-dark flex items-center justify-center">
+                          <img src={HushhLogo} alt="" className="w-3 h-3" />
+                        </div>
+                        <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">
+                          Hushh
+                        </span>
+                      </div>
+                    )}
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                      {message.content}
+                    </p>
+                    <span className={`text-[9px] mt-2 block ${
+                      message.role === 'user' ? 'text-white/50' : 'text-gray-400'
+                    }`}>
+                      {new Date(message.createdAt).toLocaleTimeString([], { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                      })}
+                    </span>
+                  </div>
+                </div>
               ))}
               
-              {/* Loading indicator */}
-              {isLoading && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex items-start gap-4"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-hushh-blue to-blue-600 flex items-center justify-center flex-shrink-0">
-                    <span className="text-white font-bold">H</span>
-                  </div>
-                  <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 rounded-2xl">
-                    <div className="flex gap-1">
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+              {/* Typing indicator */}
+              {isTyping && (
+                <div className="flex justify-start">
+                  <div className="bg-ios-gray-bg rounded-2xl rounded-bl-md px-4 py-3 border border-gray-200/60">
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 rounded-md bg-ios-dark flex items-center justify-center">
+                        <img src={HushhLogo} alt="" className="w-3 h-3" />
+                      </div>
+                      <div className="flex gap-1">
+                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      </div>
                     </div>
-                    <span className="text-sm text-gray-500">{HUSHH_BRANDING.THINKING_TEXT}</span>
                   </div>
-                </motion.div>
+                </div>
               )}
               
               <div ref={messagesEndRef} />
             </div>
           )}
         </div>
-      </main>
-      
-      {/* Input Area */}
-      <footer className="flex-shrink-0 bg-white border-t border-gray-100 px-4 py-4">
-        <div className="max-w-4xl mx-auto">
+
+        {/* Error message */}
+        {error && (
+          <div className="px-4 py-2 mb-2 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-xs text-red-600">{error}</p>
+          </div>
+        )}
+
+        {/* ── Input Area ── */}
+        <div className="py-4 border-t border-gray-100">
           <div className="flex items-end gap-3">
-            {/* Voice Button */}
-            {voiceSupported && (
-              <button
-                onClick={toggleVoiceInput}
-                className={`p-3 rounded-full transition-all flex-shrink-0 ${
-                  isListening
-                    ? 'bg-red-500 text-white animate-pulse'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-                aria-label={isListening ? 'Stop listening' : 'Start voice input'}
-              >
-                {isListening ? <FiMicOff className="w-5 h-5" /> : <FiMic className="w-5 h-5" />}
-              </button>
-            )}
-            
-            {/* Text Input */}
             <div className="flex-1 relative">
               <textarea
                 ref={inputRef}
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={handleKeyPress}
-                placeholder={isListening ? 'Listening...' : 'Type your message...'}
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={
+                  selectedLanguage === 'hi-IN' 
+                    ? 'अपना संदेश लिखें...'
+                    : selectedLanguage === 'ta-IN'
+                    ? 'உங்கள் செய்தியை எழுதுங்கள்...'
+                    : 'Type your message...'
+                }
                 rows={1}
-                className="w-full px-4 py-3 pr-12 bg-gray-50 border border-gray-200 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-hushh-blue focus:border-transparent text-gray-900 placeholder-gray-400"
-                style={{ minHeight: '48px', maxHeight: '200px' }}
-                disabled={isListening}
+                className="w-full bg-ios-gray-bg border border-gray-200/60 rounded-2xl px-4 py-3 pr-12 text-sm resize-none focus:outline-none focus:border-hushh-blue/50 transition-colors"
+                style={{ minHeight: '48px', maxHeight: '120px' }}
+                disabled={isTyping}
               />
               
-              {/* Send Button */}
+              {/* Voice button (placeholder for future) */}
               <button
-                onClick={handleSendMessage}
-                disabled={!inputValue.trim() || isLoading}
-                className={`absolute right-2 bottom-2 p-2 rounded-xl transition-all ${
-                  inputValue.trim() && !isLoading
-                    ? 'bg-hushh-blue text-white hover:bg-hushh-blue/90'
-                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                }`}
-                aria-label="Send message"
+                className="absolute right-3 bottom-3 w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 hover:bg-gray-200 transition-colors"
+                title="Voice input (coming soon)"
               >
-                {isLoading ? (
-                  <FiLoader className="w-5 h-5 animate-spin" />
-                ) : (
-                  <FiSend className="w-5 h-5" />
-                )}
+                <span className="material-symbols-outlined text-sm">mic</span>
               </button>
             </div>
+            
+            {/* Send Button */}
+            <button
+              onClick={handleSend}
+              disabled={!inputText.trim() || isTyping}
+              className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${
+                inputText.trim() && !isTyping
+                  ? 'bg-ios-dark text-white hover:bg-black'
+                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              }`}
+            >
+              <span className="material-symbols-outlined">
+                {isTyping ? 'more_horiz' : 'send'}
+              </span>
+            </button>
           </div>
           
-          {/* Voice indicator */}
-          {isListening && (
-            <p className="text-center text-sm text-red-500 mt-2 animate-pulse">
-              🎤 {HUSHH_BRANDING.LISTENING_TEXT}
-            </p>
-          )}
+          {/* Powered by badge */}
+          <div className="flex justify-center mt-4">
+            <span className="text-[9px] text-gray-400 flex items-center gap-1">
+              <span className="material-symbols-outlined text-[10px]">lock</span>
+              Powered by Hushh Intelligence • No data stored
+            </span>
+          </div>
         </div>
-      </footer>
+      </main>
     </div>
   );
-};
-
-// Helper function to format markdown to clean text
-const formatMessage = (content: string): string => {
-  let formatted = content;
-  
-  // Remove markdown bold (**text** or __text__)
-  formatted = formatted.replace(/\*\*([^*]+)\*\*/g, '$1');
-  formatted = formatted.replace(/__([^_]+)__/g, '$1');
-  
-  // Remove standalone italic markers (*text* or _text_) - simplified regex
-  // This matches single asterisks that aren't at line start (list items)
-  formatted = formatted.replace(/([^\n*])\*([^*\n]+)\*([^\n*]|$)/g, '$1$2$3');
-  formatted = formatted.replace(/([^\n_])_([^_\n]+)_([^\n_]|$)/g, '$1$2$3');
-  
-  // Convert bullet points (* item or - item) to clean bullets (•)
-  formatted = formatted.replace(/^\s*[\*\-]\s+/gm, '• ');
-  
-  // Remove markdown headers (# Header)
-  formatted = formatted.replace(/^#+\s+/gm, '');
-  
-  // Remove code backticks
-  formatted = formatted.replace(/`([^`]+)`/g, '$1');
-  formatted = formatted.replace(/```[\s\S]*?```/g, (match) => {
-    return match.replace(/```\w*\n?/g, '').replace(/```/g, '');
-  });
-  
-  // Clean up extra whitespace
-  formatted = formatted.replace(/\n{3,}/g, '\n\n');
-  
-  return formatted.trim();
-};
-
-// Message Bubble Component
-interface MessageBubbleProps {
-  message: ChatMessage;
-  onCopy: () => void;
-  isCopied: boolean;
 }
-
-const MessageBubble: React.FC<MessageBubbleProps> = ({ message, onCopy, isCopied }) => {
-  const isUser = message.role === 'user';
-  const formattedContent = isUser ? message.content : formatMessage(message.content);
-  
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className={`flex items-start gap-4 ${isUser ? 'flex-row-reverse' : ''}`}
-    >
-      {/* Avatar */}
-      <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-        isUser 
-          ? 'bg-gray-200' 
-          : 'bg-gradient-to-br from-hushh-blue to-blue-600'
-      }`}>
-        <span className={`font-bold ${isUser ? 'text-gray-600' : 'text-white'}`}>
-          {isUser ? 'U' : 'H'}
-        </span>
-      </div>
-      
-      {/* Message Content */}
-      <div className={`flex-1 max-w-[80%] ${isUser ? 'flex justify-end' : ''}`}>
-        <div className={`group relative px-4 py-3 rounded-2xl ${
-          isUser 
-            ? 'bg-hushh-blue text-white rounded-tr-sm' 
-            : 'bg-gray-50 text-gray-900 rounded-tl-sm'
-        }`}>
-          {/* Message text with proper formatting */}
-          <div className="whitespace-pre-wrap break-words text-[15px] leading-relaxed">
-            {formattedContent}
-          </div>
-          
-          {/* Copy button (for assistant messages) */}
-          {!isUser && (
-            <button
-              onClick={onCopy}
-              className="absolute -bottom-8 left-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600"
-            >
-              {isCopied ? (
-                <>
-                  <FiCheck className="w-3 h-3" />
-                  Copied!
-                </>
-              ) : (
-                <>
-                  <FiCopy className="w-3 h-3" />
-                  Copy
-                </>
-              )}
-            </button>
-          )}
-        </div>
-      </div>
-    </motion.div>
-  );
-};
-
-// SpeechRecognition types for browser compatibility
-interface SpeechRecognitionResultItem {
-  transcript: string;
-  confidence: number;
-}
-
-interface SpeechRecognitionResult {
-  0: SpeechRecognitionResultItem;
-  length: number;
-  isFinal: boolean;
-}
-
-interface SpeechRecognitionResultList {
-  length: number;
-  item(index: number): SpeechRecognitionResult;
-  [index: number]: SpeechRecognitionResult;
-}
-
-interface SpeechRecognitionEventCompat {
-  results: SpeechRecognitionResultList;
-}
-
-interface SpeechRecognitionCompat {
-  continuous: boolean;
-  interimResults: boolean;
-  lang: string;
-  start(): void;
-  stop(): void;
-  onresult: ((event: SpeechRecognitionEventCompat) => void) | null;
-  onend: (() => void) | null;
-  onerror: (() => void) | null;
-}
-
-interface SpeechRecognitionConstructor {
-  new (): SpeechRecognitionCompat;
-}
-
-declare global {
-  interface Window {
-    SpeechRecognition?: SpeechRecognitionConstructor;
-    webkitSpeechRecognition?: SpeechRecognitionConstructor;
-  }
-}
-
-export default ChatPage;
