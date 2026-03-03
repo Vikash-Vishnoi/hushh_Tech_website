@@ -248,7 +248,7 @@ const SignNDAPage: React.FC = () => {
       {/* ═══ Common Header ═══ */}
       <HushhTechHeader />
 
-      <main className="px-6 flex-grow max-w-md mx-auto w-full pb-32">
+      <main className="px-6 md:px-10 flex-grow max-w-md md:max-w-2xl lg:max-w-3xl mx-auto w-full pb-32">
         {/* ── Icon + Title ── */}
         <section className="pt-12 pb-8 text-center">
           <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-hushh-blue flex items-center justify-center">
@@ -260,7 +260,7 @@ const SignNDAPage: React.FC = () => {
             </span>
           </div>
           <h1
-            className="text-[2.5rem] leading-[1.1] font-normal text-black tracking-tight font-serif"
+            className="text-[2.5rem] md:text-[3rem] lg:text-[3.5rem] leading-[1.1] font-normal text-black tracking-tight font-serif"
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
             Non-Disclosure<br />
@@ -273,7 +273,7 @@ const SignNDAPage: React.FC = () => {
 
         {/* ── Security Badge ── */}
         <section className="mb-8">
-          <div className="flex items-center justify-center gap-2 py-3 px-4 border border-gray-200 bg-gray-50">
+          <div className="flex items-center justify-center gap-2 py-3 px-4 border border-gray-200 bg-gray-50 rounded-xl">
             <span
               className="material-symbols-outlined text-hushh-blue text-lg"
               style={{ fontVariationSettings: "'wght' 400" }}
@@ -291,8 +291,8 @@ const SignNDAPage: React.FC = () => {
           <h3 className="text-[10px] tracking-[0.2em] text-gray-400 uppercase mb-4 font-medium">
             Agreement Terms
           </h3>
-          <div className="border border-gray-200 bg-white">
-            <div className="max-h-80 overflow-y-auto p-5 space-y-5 scrollbar-thin">
+          <div className="border border-gray-200 bg-white rounded-xl">
+            <div className="max-h-80 md:max-h-[28rem] overflow-y-auto p-5 md:p-8 space-y-5 scrollbar-thin">
               <p className="text-sm font-bold text-black uppercase tracking-wide">
                 mutual non-disclosure agreement
               </p>
@@ -321,7 +321,7 @@ const SignNDAPage: React.FC = () => {
           </h3>
 
           {/* Name input */}
-          <div className="border border-gray-200 mb-2">
+          <div className="border border-gray-200 rounded-xl overflow-hidden mb-2">
             <div className="flex items-center px-4 py-4 border-b border-gray-100">
               <label className="text-sm font-semibold text-gray-900 shrink-0 mr-4">
                 Full Legal Name
@@ -386,7 +386,7 @@ const SignNDAPage: React.FC = () => {
         </section>
 
         {/* ── CTA — Sign & Continue ── */}
-        <section className="space-y-3 mb-8">
+        <section className="space-y-3 mb-8 md:max-w-sm md:mx-auto">
           <HushhTechCta
             variant={HushhTechCtaVariant.BLACK}
             onClick={handleSignNDA}
