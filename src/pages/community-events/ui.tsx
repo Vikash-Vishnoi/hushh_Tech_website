@@ -17,7 +17,6 @@ import HushhTechBackHeader from "../../components/hushh-tech-back-header/HushhTe
 import HushhTechCta, {
   HushhTechCtaVariant,
 } from "../../components/hushh-tech-cta/HushhTechCta";
-import HushhTechFooter from "../../components/hushh-tech-footer/HushhTechFooter";
 
 /* ── Playfair heading style ── */
 const playfair = { fontFamily: "'Playfair Display', serif" };
@@ -777,9 +776,6 @@ export default function CommunityEventsPage() {
           )}
         </AnimatePresence>
       </main>
-
-      {/* ═══ Footer ═══ */}
-      <HushhTechFooter />
     </div>
   );
 }
