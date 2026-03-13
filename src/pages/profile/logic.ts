@@ -111,23 +111,23 @@ export function useProfileLogic() {
   /* primary CTA content based on onboarding status */
   const getPrimaryCTAContent = () => {
     if (onboardingStatus.loading) {
-      return { text: 'loading...', action: () => {} };
+      return { text: 'Loading...', action: () => {} };
     }
     if (onboardingStatus.hasProfile || onboardingStatus.isCompleted) {
       return {
-        text: 'view your profile',
+        text: 'View Your Profile',
         action: () => navigate('/hushh-user-profile'),
       };
     }
     if (onboardingStatus.currentStep > 1) {
       return {
-        text: `continue onboarding (step ${onboardingStatus.currentStep})`,
+        text: `Continue Onboarding (Step ${onboardingStatus.currentStep})`,
         action: () =>
           navigate(`/onboarding/step-${onboardingStatus.currentStep}`),
       };
     }
     return {
-      text: 'complete your hushh profile',
+      text: 'Complete Your Hushh Profile',
       action: () => navigate('/onboarding/financial-link'),
     };
   };

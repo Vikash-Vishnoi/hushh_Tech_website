@@ -34,7 +34,7 @@ const ProfilePage: React.FC = () => {
 
           {/* pill badge */}
           <span className="inline-flex items-center gap-1.5 rounded-full border border-hushh-blue/20 bg-hushh-blue/5 px-4 py-1">
-            <span className="material-symbols-rounded text-[16px] text-hushh-blue">person</span>
+            <span className="material-symbols-rounded text-[16px] text-hushh-blue uppercase">person</span>
             <span className="text-[11px] tracking-[0.14em] uppercase text-hushh-blue font-medium">
               Profile
             </span>
