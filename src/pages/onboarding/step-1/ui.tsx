@@ -3,7 +3,6 @@
  * Matches the refined HTML design. Logic stays in logic.ts.
  * Uses HushhTechBackHeader + HushhTechCta reusable components.
  */
-import { useState } from "react";
 import {
   useStep1Logic,
   SHARE_CLASSES,
@@ -57,12 +56,11 @@ export default function OnboardingStep1() {
     handleCustomAmountChange,
     setFrequency,
     setInvestmentDay,
+    recurringEnabled,
+    setRecurringEnabled,
     handleNext,
     handleBack,
   } = useStep1Logic();
-
-  /* Toggle for recurring investment — OFF hides frequency/day/amount */
-  const [recurringEnabled, setRecurringEnabled] = useState(false);
 
   return (
     <div className="bg-white text-gray-900 min-h-screen antialiased flex flex-col selection:bg-hushh-blue selection:text-white">

@@ -40,15 +40,23 @@ const TABS = [
   { id: HushhFooterTab.PROFILE, icon: "person", label: "Profile" },
 ];
 
-/** Fund A has a custom icon (gold circle with line) */
+/** Fund A has a custom icon (circle with line) */
 const FundAIcon: React.FC<{ isActive: boolean }> = ({ isActive }) => {
-  const color = isActive ? "#C1A87D" : "#9CA3AF";
   return (
     <div
-      className="w-5 h-5 rounded-full border-2 flex items-center justify-center"
-      style={{ borderColor: color }}
+      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+        isActive
+          ? "border-white"
+          : "border-gray-400 group-hover:border-white"
+      }`}
     >
-      <div className="w-[1px] h-2" style={{ backgroundColor: color }} />
+      <div
+        className={`w-[1px] h-2 transition-colors ${
+          isActive
+            ? "bg-white"
+            : "bg-gray-400 group-hover:bg-white"
+        }`}
+      />
     </div>
   );
 };
@@ -92,20 +100,14 @@ const HushhTechFooter: React.FC<HushhTechFooterProps> = ({
   const renderTab = (tab: (typeof TABS)[number]) => {
     const isActive = activeTab === tab.id;
 
-    // Text color: active = white (or gold for Fund A), inactive = gray
-    const textColor =
-      isActive && tab.id === HushhFooterTab.FUND_A
-        ? "text-[#C1A87D]"
-        : isActive
-          ? "text-white"
-          : "text-gray-500 group-hover:text-gray-300";
+    // Text color: active = white, inactive = gray with hover
+    const textColor = isActive
+      ? "text-white"
+      : "text-gray-500 group-hover:text-gray-300";
 
-    const iconColor =
-      isActive && tab.id === HushhFooterTab.FUND_A
-        ? "text-[#C1A87D]"
-        : isActive
-          ? "text-white"
-          : "text-gray-400 group-hover:text-white";
+    const iconColor = isActive
+      ? "text-white"
+      : "text-gray-400 group-hover:text-white";
 
     return (
       <button

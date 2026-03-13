@@ -69,6 +69,8 @@ export interface Step1Logic {
   isFooterVisible: boolean;
   totalInvestment: number;
   hasSelection: boolean;
+  recurringEnabled: boolean;
+  setRecurringEnabled: (enabled: boolean) => void;
   handleUnitChange: (classId: string, delta: number) => void;
   handleAmountClick: (amount: number) => void;
   handleCustomAmountChange: (e: ChangeEvent<HTMLInputElement>) => void;
@@ -91,6 +93,7 @@ export const useStep1Logic = (): Step1Logic => {
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState('');
   const [customAmountError, setCustomAmountError] = useState<string | null>(null);
+  const [recurringEnabled, setRecurringEnabled] = useState(false);
 
   const totalInvestment = SHARE_CLASSES.reduce((t, sc) => t + units[sc.id] * sc.unitPrice, 0);
   const hasSelection = Object.values(units).some((c) => c > 0);
@@ -164,8 +167,10 @@ export const useStep1Logic = (): Step1Logic => {
     setSelectedAmount(amount); setCustomAmount(''); setCustomAmountError(null); setError(null);
   };
 
-  const validateRecurringAmount = (v: number): string | null => {
-    if (v === 0) return null;
+  const validateRecurringAmount = (v: number, rawInput: string): string | null => {
+    /* If field is empty, no error (user hasn't typed anything) */
+    if (!rawInput || rawInput.trim() === '') return null;
+    /* If user typed something that parses to 0 or below minimum, reject */
     if (v < MIN_RECURRING_AMOUNT) return `Minimum is $${MIN_RECURRING_AMOUNT.toLocaleString()}`;
     if (v > MAX_RECURRING_AMOUNT) return `Maximum is $${(MAX_RECURRING_AMOUNT / 1000000).toFixed(0)}M`;
     return null;
@@ -177,15 +182,28 @@ export const useStep1Logic = (): Step1Logic => {
     if (raw.length > 12) return;
     const formatted = formatNumberWithCommas(raw);
     setCustomAmount(formatted);
-    setCustomAmountError(validateRecurringAmount(parseFormattedNumber(formatted)));
+    setCustomAmountError(validateRecurringAmount(parseFormattedNumber(formatted), raw));
   };
 
   const handleNext = async () => {
     if (!userId || !config.supabaseClient || !hasSelection) return;
     if (customAmountError) { setError(customAmountError); return; }
+
+    /* When recurring is ON, validate that user picked a valid amount */
+    if (recurringEnabled) {
+      const recurringAmt = selectedAmount || parseFormattedNumber(customAmount);
+      if (recurringAmt < MIN_RECURRING_AMOUNT) {
+        setError(`Please select a recurring amount (minimum $${MIN_RECURRING_AMOUNT.toLocaleString()})`);
+        return;
+      }
+    }
+
     setIsLoading(true); setError(null);
     try {
-      const recurringAmount = selectedAmount || parseFormattedNumber(customAmount);
+      /* Only use recurring amount if toggle is ON */
+      const recurringAmount = recurringEnabled
+        ? (selectedAmount || parseFormattedNumber(customAmount))
+        : 0;
       let dayInt = 1;
       if (investmentDay.includes('15th')) dayInt = 15;
       else if (investmentDay.includes('Last')) dayInt = 31;
@@ -196,7 +214,7 @@ export const useStep1Logic = (): Step1Logic => {
         initial_investment_amount: totalInvestment, current_step: 1,
         updated_at: new Date().toISOString(),
       };
-      if (recurringAmount > 0) {
+      if (recurringEnabled && recurringAmount > 0) {
         updateData.recurring_frequency = frequency;
         updateData.recurring_day_of_month = dayInt;
         updateData.recurring_amount = recurringAmount;
@@ -219,6 +237,7 @@ export const useStep1Logic = (): Step1Logic => {
   return {
     units, frequency, investmentDay, selectedAmount, customAmount, customAmountError,
     error, isLoading, isFooterVisible, totalInvestment, hasSelection,
+    recurringEnabled, setRecurringEnabled,
     handleUnitChange, handleAmountClick, handleCustomAmountChange,
     setFrequency, setInvestmentDay, handleNext, handleBack,
   };

@@ -581,7 +581,7 @@ const SignNDAPage: React.FC = () => {
             onClick={handleSignNDA}
             disabled={!canSubmit}
           >
-            {isSubmitting ? 'signing...' : 'sign & continue'}
+            {isSubmitting ? 'Signing...' : 'Sign & Continue'}
           </HushhTechCta>
         </section>
 

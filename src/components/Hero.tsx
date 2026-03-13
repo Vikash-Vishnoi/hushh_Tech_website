@@ -463,7 +463,7 @@ export default function Hero() {
               <Flex align="center" gap={1} cursor="pointer" color={IOS.blue}
                 onClick={() => navigate("/discover-fund-a")}
               >
-                <Text fontSize="15px" fontWeight="500">Performance details</Text>
+                <Text fontSize="15px" fontWeight="500">Performance Details</Text>
                 <ChevronRight />
               </Flex>
             </Flex>
@@ -494,7 +494,7 @@ export default function Hero() {
             transition="all 0.15s ease-out"
             onClick={() => navigate("/discover-fund-a")}
           >
-            Explore our Approach
+            Explore Our Approach
           </Box>
 
           <Box

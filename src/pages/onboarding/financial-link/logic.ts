@@ -112,13 +112,13 @@ export const useFinancialLinkLogic = () => {
   const canProceed = isDone && plaid.canProceed;
 
   const buttonText = useMemo(() => {
-    if (plaid.step === 'idle' || plaid.step === 'creating_token') return 'preparing...';
-    if (plaid.step === 'linking') return 'connecting...';
-    if (plaid.step === 'exchanging') return 'securing connection...';
-    if (plaid.step === 'fetching') return 'fetching financial data...';
-    if (isDone && canProceed) return 'continue to kyc';
-    if (plaid.step === 'error' || (isDone && !plaid.canProceed)) return 'try again';
-    return 'connect bank account';
+    if (plaid.step === 'idle' || plaid.step === 'creating_token') return 'Preparing...';
+    if (plaid.step === 'linking') return 'Connecting...';
+    if (plaid.step === 'exchanging') return 'Securing Connection...';
+    if (plaid.step === 'fetching') return 'Fetching Financial Data...';
+    if (isDone && canProceed) return 'Continue to KYC';
+    if (plaid.step === 'error' || (isDone && !plaid.canProceed)) return 'Try Again';
+    return 'Connect Bank Account';
   }, [plaid.step, plaid.canProceed, isDone, canProceed]);
 
   const isButtonDisabled = isInitializing || isProcessing;
@@ -133,26 +133,26 @@ export const useFinancialLinkLogic = () => {
     return [
       {
         icon: 'account_balance_wallet',
-        title: 'assets',
+        title: 'Assets',
         subtitle: balanceStatus === 'success'
-          ? `${allAccounts.length} accounts · ${formatCurrency(totalBalance)}`
-          : balanceStatus === 'loading' ? 'fetching...' : 'not available',
+          ? `${allAccounts.length} Accounts · ${formatCurrency(totalBalance)}`
+          : balanceStatus === 'loading' ? 'Fetching...' : 'Not Available',
         status: balanceStatus,
       },
       {
         icon: 'monitoring',
-        title: 'investments',
+        title: 'Investments',
         subtitle: investmentsStatus === 'success' && investmentHoldings.length > 0
-          ? `${investmentHoldings.length} holdings`
-          : investmentsStatus === 'loading' ? 'fetching...' : 'no investment accounts',
+          ? `${investmentHoldings.length} Holdings`
+          : investmentsStatus === 'loading' ? 'Fetching...' : 'No Investment Accounts',
         status: investmentsStatus,
       },
       {
         icon: 'badge',
-        title: 'identity',
+        title: 'Identity',
         subtitle: hasIdentity
-          ? `✓ verified — ${identityInfo!.names[0] || ''}`
-          : plaid.step === 'done' ? 'not available' : 'not available',
+          ? `✓ Verified — ${identityInfo!.names[0] || ''}`
+          : plaid.step === 'done' ? 'Not Available' : 'Not Available',
         status: hasIdentity ? 'success' as const : 'idle' as const,
       },
     ];

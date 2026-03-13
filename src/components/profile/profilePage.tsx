@@ -402,6 +402,7 @@ const ProfilePage: React.FC = () => {
               fontSize="17px"
               fontWeight="600"
               letterSpacing="-0.01em"
+              textTransform="none"
               isLoading={onboardingStatus.loading}
               loadingText="Loading..."
               position="relative"
@@ -449,6 +450,7 @@ const ProfilePage: React.FC = () => {
               fontSize="17px"
               fontWeight="600"
               letterSpacing="-0.01em"
+              textTransform="none"
               _hover={{ 
                 bg: "rgba(43, 140, 238, 0.05)",
                 borderColor: "#2480d9",
