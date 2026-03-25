@@ -1,4 +1,5 @@
 import resources from "../../resources/resources";
+import { sanitizeInternalRedirect } from "../../utils/security";
 
 // Use Supabase OAuth flow for Google sign-in.
 export default async function googleSignIn() {
@@ -11,7 +12,10 @@ export default async function googleSignIn() {
 
     // Preserve redirect parameter from current URL (for Hushh AI and other modules)
     const currentParams = new URLSearchParams(window.location.search);
-    const redirectPath = currentParams.get('redirect');
+    const rawRedirectPath = currentParams.get('redirect');
+    const redirectPath = rawRedirectPath
+      ? sanitizeInternalRedirect(rawRedirectPath)
+      : null;
 
     // Force redirect to /auth/callback to ensure we handle MFA/Onboarding checks
     let redirectTo = `${window.location.origin}/auth/callback`;

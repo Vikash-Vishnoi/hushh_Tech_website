@@ -2,10 +2,10 @@
 // Calls hushh-profile-search API and transforms response for onboarding/profile pre-population
 
 import { EnrichedProfileData, ParsedAddress, ParsedPhone, ProfilePreferences } from './types';
+import config from '../../resources/config/config';
 
-const PROFILE_SEARCH_API = 'https://ibsisfnjxeowvdtvgzff.supabase.co/functions/v1/hushh-profile-search';
-// Use the correct Supabase anon key from config
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlic2lzZm5qeGVvd3ZkdHZnemZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1NTk1NzgsImV4cCI6MjA4MDEzNTU3OH0.K16sO1R9L2WZGPueDP0mArs2eDYZc-TnIk2LApDw_fs';
+const PROFILE_SEARCH_API = `${config.SUPABASE_URL}/functions/v1/hushh-profile-search`;
+const SUPABASE_ANON_KEY = config.SUPABASE_ANON_KEY;
 
 export interface SearchParams {
   name: string;

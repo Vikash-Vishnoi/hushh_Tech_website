@@ -1,6 +1,7 @@
 // create-link-token — Creates a Plaid Link token (production-ready)
 import { corsHeaders } from '../_shared/cors.ts';
 import { getPlaidConfig } from '../_shared/plaid.ts';
+import { authenticateEdgeRequest } from '../_shared/security.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -10,6 +11,12 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json();
     const { userId, userEmail, redirectUri, receivedRedirectUri } = body;
+
+    const authFailure = await authenticateEdgeRequest(req, {
+      label: 'create-link-token',
+      expectedUserId: userId || null,
+    });
+    if (authFailure) return authFailure;
 
     if (!userId) {
       return new Response(

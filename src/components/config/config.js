@@ -7,14 +7,26 @@ const redirect_urls = {
   production: "https://hushhTech.com",
 };
 
+function readClientEnv(value, name, fallback = "") {
+  if (typeof value === "string" && value.trim().length > 0) {
+    return value.trim();
+  }
+
+  console.error(`[Config] Missing required client environment variable: ${name}`);
+  return fallback;
+}
+
 const config = {
-  SUPABASE_URL: env?.VITE_SUPABASE_URL || "https://ibsisfnjxeowvdtvgzff.supabase.co",
+  SUPABASE_URL: readClientEnv(
+    env?.VITE_SUPABASE_URL,
+    "VITE_SUPABASE_URL",
+    "https://ibsisfnjxeowvdtvgzff.supabase.co"
+  ),
   SUPABASE_ANON_KEY:
-    env?.VITE_SUPABASE_ANON_KEY ||
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlic2lzZm5qeGVvd3ZkdHZnemZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1NTk1NzgsImV4cCI6MjA4MDEzNTU3OH0.K16sO1R9L2WZGPueDP0mArs2eDYZc-TnIk2LApDw_fs",
+    readClientEnv(env?.VITE_SUPABASE_ANON_KEY, "VITE_SUPABASE_ANON_KEY"),
 
   guestModeAccessToken:
-    "P2H8RNXPvIiPoeM0iJEDjJ2Skk37h5pScMQF5oMRUXm3dKoUC2wxrWImx5ccA9VOrOoeaLcMQqn57vYDPucTkYnkkH6icUQy09vtd5eIrAIXhBtmUfAmPI3thD2OoUeF",
+    readClientEnv(env?.VITE_GUEST_MODE_ACCESS_TOKEN, "VITE_GUEST_MODE_ACCESS_TOKEN"),
   redirect_url:
     env?.VITE_SUPABASE_REDIRECT_URL ||
     (typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : "https://www.hushhtech.com/auth/callback"),

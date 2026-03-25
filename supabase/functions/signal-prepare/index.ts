@@ -1,6 +1,7 @@
 // signal-prepare — Opt-in an Item to Signal Transaction Scores data collection
 import { corsHeaders } from '../_shared/cors.ts';
 import { getPlaidConfig } from '../_shared/plaid.ts';
+import { authenticateEdgeRequest } from '../_shared/security.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -8,6 +9,11 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const authFailure = await authenticateEdgeRequest(req, {
+      label: 'signal-prepare',
+    });
+    if (authFailure) return authFailure;
+
     const body = await req.json();
     const accessToken = body.accessToken || body.access_token;
 

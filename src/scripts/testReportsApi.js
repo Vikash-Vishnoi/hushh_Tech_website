@@ -3,9 +3,21 @@
  * Run with: node src/scripts/testReportsApi.js
  */
 
-const API_BASE_URL = 'https://spmxyqxjqxcyywkapong.supabase.co/rest/v1';
-// Updated API key
-const API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwbXh5cXhqcXhjeXl3a2Fwb25nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ3MTYwNDIsImV4cCI6MjA2MDI5MjA0Mn0._C6lZcTubk2VuwDKC2uDOsiFFPaKRiEJSqBjtGpm99E';
+const API_BASE_URL =
+  process.env.MARKET_SUPABASE_API_BASE ||
+  (process.env.VITE_MARKET_SUPABASE_URL
+    ? `${process.env.VITE_MARKET_SUPABASE_URL}/rest/v1`
+    : 'https://spmxyqxjqxcyywkapong.supabase.co/rest/v1');
+const API_KEY =
+  process.env.MARKET_SUPABASE_ANON_KEY ||
+  process.env.VITE_MARKET_SUPABASE_KEY;
+
+if (!API_KEY) {
+  console.error(
+    'Missing MARKET_SUPABASE_ANON_KEY or VITE_MARKET_SUPABASE_KEY. Export one before running this script.'
+  );
+  process.exit(1);
+}
 
 // Storage bucket URLs for testing images and videos
 const STORAGE_BUCKETS = {

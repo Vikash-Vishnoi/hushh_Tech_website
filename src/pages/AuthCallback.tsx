@@ -5,6 +5,7 @@ import { CheckCircle, AlertTriangle } from 'lucide-react';
 import config from '../resources/config/config';
 import { searchProfile, mapToOnboardingFields } from '../services/profileSearch';
 import { isPrivateRelayEmail } from '../utils/emailUtils';
+import { DEFAULT_AUTH_REDIRECT, sanitizeInternalRedirect } from '../utils/security';
 
 
 // Helper function to enrich user profile in background (non-blocking)
@@ -131,14 +132,15 @@ const AuthCallback: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string>('');
 
   // Get custom redirect from URL param (for Hushh AI and other modules)
-  const customRedirect = searchParams.get('redirect');
+  const redirectParam = searchParams.get('redirect');
+  const customRedirect = redirectParam
+    ? sanitizeInternalRedirect(redirectParam, DEFAULT_AUTH_REDIRECT)
+    : null;
 
   // Helper to determine final redirect destination
   const getRedirectDestination = (hasCompletedOnboarding: boolean) => {
     // If custom redirect is set (e.g., /hushh-ai), use it
-    if (customRedirect) {
-      return customRedirect;
-    }
+    if (customRedirect) return customRedirect;
     // Otherwise, default behavior: onboarding or profile
     return hasCompletedOnboarding ? '/hushh-user-profile' : '/onboarding/financial-link';
   };

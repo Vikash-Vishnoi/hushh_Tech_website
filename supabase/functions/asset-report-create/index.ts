@@ -1,6 +1,7 @@
 // asset-report-create — Create or get Plaid asset report
 import { corsHeaders } from '../_shared/cors.ts';
 import { getPlaidConfig } from '../_shared/plaid.ts';
+import { authenticateEdgeRequest } from '../_shared/security.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -8,6 +9,11 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const authFailure = await authenticateEdgeRequest(req, {
+      label: 'asset-report-create',
+    });
+    if (authFailure) return authFailure;
+
     const body = await req.json();
     const plaid = getPlaidConfig();
 

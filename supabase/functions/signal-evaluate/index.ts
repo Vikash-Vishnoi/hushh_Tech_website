@@ -2,6 +2,7 @@
 // Returns: risk scores (1-99), core attributes, ruleset result
 import { corsHeaders } from '../_shared/cors.ts';
 import { getPlaidConfig } from '../_shared/plaid.ts';
+import { authenticateEdgeRequest } from '../_shared/security.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -9,6 +10,11 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const authFailure = await authenticateEdgeRequest(req, {
+      label: 'signal-evaluate',
+    });
+    if (authFailure) return authFailure;
+
     const body = await req.json();
     const accessToken = body.accessToken || body.access_token;
     const accountId = body.accountId || body.account_id;

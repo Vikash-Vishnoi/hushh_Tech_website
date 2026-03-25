@@ -9,7 +9,7 @@
 TEAM_ID="WVDK9JW99C"                   # Your Team ID
 KEY_ID="2822NMDJU5"                    # The Key ID from Apple
 CLIENT_ID="WVDK9JW99C.all-hushh-web-login"           # Your Service ID (e.g. com.hushh.webapp)
-KEY_FILE_PATH="./AuthKey_LK53NZBH4L.p8" # Exact filename of your .p8 file in this folder
+KEY_FILE_PATH="${APPLE_PRIVATE_KEY_PATH:-$HOME/.private_keys/AuthKey_${KEY_ID}.p8}" # Keep the .p8 outside the repo
 
 # --- 2. SETUP & GENERATION ---
 
@@ -22,7 +22,7 @@ fi
 # Check if .p8 file exists
 if [ ! -f "$KEY_FILE_PATH" ]; then
     echo "❌ Error: Key file not found at $KEY_FILE_PATH"
-    echo "   Make sure the file name in line 12 matches your actual file."
+    echo "   Set APPLE_PRIVATE_KEY_PATH or place the file at ~/.private_keys/AuthKey_${KEY_ID}.p8"
     exit 1
 fi
 

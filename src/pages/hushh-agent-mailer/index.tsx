@@ -10,12 +10,13 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast, Spinner, Badge } from "@chakra-ui/react";
 import { createClient } from "@supabase/supabase-js";
+import config from "../../resources/config/config";
 import { useFooterVisibility } from "../../utils/useFooterVisibility";
 
 // Supabase client
 const supabase = createClient(
-  "https://ibsisfnjxeowvdtvgzff.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlic2lzZm5qeGVvd3ZkdHZnemZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1NTk1NzgsImV4cCI6MjA4MDEzNTU3OH0.K16sO1R9L2WZGPueDP0mArs2eDYZc-TnIk2LApDw_fs"
+  config.SUPABASE_URL,
+  config.SUPABASE_ANON_KEY
 );
 
 // Types
@@ -53,8 +54,8 @@ interface SendResponse {
 }
 
 // Supabase Edge Function URL
-const SALES_MAILER_URL = "https://ibsisfnjxeowvdtvgzff.supabase.co/functions/v1/sales-mailer";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlic2lzZm5qeGVvd3ZkdHZnemZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ1NTk1NzgsImV4cCI6MjA4MDEzNTU3OH0.K16sO1R9L2WZGPueDP0mArs2eDYZc-TnIk2LApDw_fs";
+const SALES_MAILER_URL = `${config.SUPABASE_URL}/functions/v1/sales-mailer`;
+const SUPABASE_ANON_KEY = config.SUPABASE_ANON_KEY;
 
 // Sender options
 const SENDER_OPTIONS = [

@@ -34,6 +34,7 @@ interface ImportMetaEnv {
   readonly VITE_SUPABASE_ANON_KEY: string;
   readonly VITE_SUPABASE_REDIRECT_URL?: string;
   readonly VITE_OPENAI_API_KEY?: string;
+  readonly VITE_ALLOW_INSECURE_BROWSER_LLM?: string;
   readonly VITE_FINNHUB_API_KEY?: string;
   readonly VITE_GEMINI_API_KEY?: string;
   
