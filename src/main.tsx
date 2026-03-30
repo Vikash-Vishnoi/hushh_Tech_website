@@ -7,10 +7,6 @@ import config from './resources/config/config.ts'
 // Initialize i18n for multi-language support
 import './i18n'
 
-// Production security: block DevTools, right-click, console output
-import initDevToolsGuard from './utils/devtools-guard'
-initDevToolsGuard()
-
 // ─── App Version ────────────────────────────────────────────────────────────
 // Expose version globally so team can check via DevTools console:
 //   Type: __HUSHH_VERSION__  →  { version, built }
