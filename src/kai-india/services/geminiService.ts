@@ -23,12 +23,27 @@ const isValidMarketItem = (item: MarketItem): boolean => {
   return true;
 };
 
-const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
+let aiClient: GoogleGenAI | null = null;
+
+const getAiClient = (): GoogleGenAI => {
+  if (aiClient) {
+    return aiClient;
+  }
+
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY?.trim();
+  if (!apiKey) {
+    throw new Error("Kai India is unavailable because VITE_GEMINI_API_KEY is not configured.");
+  }
+
+  aiClient = new GoogleGenAI({ apiKey });
+  return aiClient;
+};
 
 // Retry wrapper for API calls with exponential backoff
 const generateWithRetry = async (model: string, prompt: string, tools?: any[]) => {
   let retries = 3;
   let delay = 2000;
+  const ai = getAiClient();
 
   while (true) {
     try {

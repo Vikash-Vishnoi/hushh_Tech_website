@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import HomePage from './pages/home/ui';
@@ -74,7 +74,6 @@ import HushhAIPage from './hushh-ai/pages';
 import { LoginPage as HushhAILoginPage, SignupPage as HushhAISignupPage } from './hushh-ai/presentation/pages';
 import HushhAgentApp from './hushh-agent/pages';
 import KaiApp from './kai/pages';
-import KaiIndiaApp from './kai-india/pages';
 import HushhStudioApp from './hushh-studio/pages';
 import HushhAgentsApp from './hushh-agents/pages';
 import GlobalNDAGate from './components/GlobalNDAGate';
@@ -84,6 +83,7 @@ import NDAAdminPage from './pages/nda-admin';
 
 // Google Analytics configuration
 const GA_TRACKING_ID = 'G-R58S9WWPM0';
+const KaiIndiaApp = React.lazy(() => import('./kai-india/pages'));
 
 // Content wrapper component that applies conditional margin
 const ContentWrapper = ({ children }: { children: ReactNode }) => {
@@ -439,7 +439,14 @@ function App() {
             <Route path='/kai' element={<KaiApp />} />
             {/* Kai India - Indian Market Intelligence Dashboard */}
             {/* Real-time NSE/BSE market data powered by Gemini 2.5 Flash with Google Search */}
-            <Route path='/kai-india' element={<KaiIndiaApp />} />
+            <Route
+              path='/kai-india'
+              element={
+                <Suspense fallback={<div className="min-h-screen bg-black" />}>
+                  <KaiIndiaApp />
+                </Suspense>
+              }
+            />
             {/* Hushh Studio - FREE AI Video Generation */}
             {/* Powered by Google Veo 3.1 - No login required, free for Indian audience */}
             <Route path='/studio' element={<HushhStudioApp />} />
