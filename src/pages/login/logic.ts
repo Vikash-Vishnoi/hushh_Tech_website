@@ -8,6 +8,7 @@
  */
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { redirectToUrl } from "../../auth/authHost";
 import { DEFAULT_AUTH_REDIRECT, sanitizeInternalRedirect } from "../../utils/security";
 import { useAuthSession } from "../../auth/AuthSessionProvider";
 
@@ -15,6 +16,8 @@ import { useAuthSession } from "../../auth/AuthSessionProvider";
 export interface LoginLogic {
   isLoading: boolean;
   isSigningIn: boolean;
+  oauthError: string | null;
+  oauthFallbackUrl: string | null;
   handleAppleSignIn: () => Promise<void>;
   handleGoogleSignIn: () => Promise<void>;
 }
@@ -23,6 +26,8 @@ export interface LoginLogic {
 export const useLoginLogic = (): LoginLogic => {
   const navigate = useNavigate();
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const [oauthError, setOAuthError] = useState<string | null>(null);
+  const [oauthFallbackUrl, setOAuthFallbackUrl] = useState<string | null>(null);
   const { status, startOAuth } = useAuthSession();
 
   // Stable redirect path — computed once from URL params
@@ -38,29 +43,47 @@ export const useLoginLogic = (): LoginLogic => {
     }
   }, [navigate, redirectPath, status]);
 
+  const handleOAuthFailure = useCallback(
+    (message: string, fallbackUrl?: string) => {
+      setIsSigningIn(false);
+      setOAuthError(message);
+      setOAuthFallbackUrl(fallbackUrl || null);
+      if (fallbackUrl) {
+        redirectToUrl(fallbackUrl);
+      }
+    },
+    []
+  );
+
   /* Apple OAuth — prevent double-clicks */
   const handleAppleSignIn = useCallback(async () => {
     if (isSigningIn) return;
     setIsSigningIn(true);
-    const initiated = await startOAuth("apple");
-    if (!initiated) {
-      setIsSigningIn(false);
+    setOAuthError(null);
+    setOAuthFallbackUrl(null);
+    const result = await startOAuth("apple");
+    if (!result.ok) {
+      handleOAuthFailure(result.message, result.redirectTo);
     }
-  }, [isSigningIn, startOAuth]);
+  }, [handleOAuthFailure, isSigningIn, startOAuth]);
 
   /* Google OAuth — prevent double-clicks */
   const handleGoogleSignIn = useCallback(async () => {
     if (isSigningIn) return;
     setIsSigningIn(true);
-    const initiated = await startOAuth("google");
-    if (!initiated) {
-      setIsSigningIn(false);
+    setOAuthError(null);
+    setOAuthFallbackUrl(null);
+    const result = await startOAuth("google");
+    if (!result.ok) {
+      handleOAuthFailure(result.message, result.redirectTo);
     }
-  }, [isSigningIn, startOAuth]);
+  }, [handleOAuthFailure, isSigningIn, startOAuth]);
 
   return {
     isLoading: status === "booting",
     isSigningIn,
+    oauthError,
+    oauthFallbackUrl,
     handleAppleSignIn,
     handleGoogleSignIn,
   };

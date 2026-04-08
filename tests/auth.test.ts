@@ -71,7 +71,7 @@ vi.mock("../src/resources/config/config", () => ({
   default: {
     SUPABASE_URL: "https://ibsisfnjxeowvdtvgzff.supabase.co",
     SUPABASE_ANON_KEY: "mock-anon-key",
-    redirect_url: "http://localhost:5173/auth/callback",
+    redirect_url: "https://hushhtech.com/auth/callback",
     supabaseClient: mockSupabaseClient,
   },
 }));
@@ -81,7 +81,7 @@ vi.mock("../src/resources/resources", () => ({
     config: {
       SUPABASE_URL: "https://ibsisfnjxeowvdtvgzff.supabase.co",
       SUPABASE_ANON_KEY: "mock-anon-key",
-      redirect_url: "http://localhost:5173/auth/callback",
+      redirect_url: "https://hushhtech.com/auth/callback",
       supabaseClient: mockSupabaseClient,
     },
   },
@@ -108,10 +108,11 @@ vi.mock("../src/services/services", () => ({
 
 // Mock window for OAuth tests
 const mockWindowLocation = {
-  origin: "https://www.hushhtech.com",
+  origin: "https://hushhtech.com",
+  pathname: "/login",
   search: "",
   assign: vi.fn(),
-  href: "https://www.hushhtech.com/login",
+  href: "https://hushhtech.com/login",
 };
 
 // ─── Import modules after mocks ─────────────────────────────────────────────

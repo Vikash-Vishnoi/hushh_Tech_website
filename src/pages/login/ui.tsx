@@ -19,8 +19,14 @@ import HushhTechFooter from "../../components/hushh-tech-footer/HushhTechFooter"
 const playfair = { fontFamily: "'Playfair Display', serif" };
 
 export default function LoginPage() {
-  const { isLoading, isSigningIn, handleAppleSignIn, handleGoogleSignIn } =
-    useLoginLogic();
+  const {
+    isLoading,
+    isSigningIn,
+    oauthError,
+    oauthFallbackUrl,
+    handleAppleSignIn,
+    handleGoogleSignIn,
+  } = useLoginLogic();
 
   if (isLoading) return null;
 
@@ -76,6 +82,20 @@ export default function LoginPage() {
             <FcGoogle className="text-lg" />
             <span>Continue with Google</span>
           </HushhTechCta>
+
+          {oauthError ? (
+            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <p>{oauthError}</p>
+              {oauthFallbackUrl ? (
+                <a
+                  href={oauthFallbackUrl}
+                  className="mt-2 inline-flex font-medium underline underline-offset-2"
+                >
+                  Continue on the supported sign-in host
+                </a>
+              ) : null}
+            </div>
+          ) : null}
         </section>
 
         {/* ── Sign up link ── */}

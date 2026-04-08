@@ -15,8 +15,21 @@ import './i18n'
   version: __APP_VERSION__,
   built: __BUILD_TIMESTAMP__,
 }
-// Also update the HTML meta tag dynamically
-document.querySelector('meta[name="app-version"]')?.setAttribute('content', __APP_VERSION__)
+
+function upsertMeta(name: string, content: string) {
+  let meta = document.querySelector(`meta[name="${name}"]`)
+
+  if (!meta) {
+    meta = document.createElement("meta")
+    meta.setAttribute("name", name)
+    document.head.appendChild(meta)
+  }
+
+  meta.setAttribute("content", content)
+}
+
+upsertMeta("app-version", __APP_VERSION__)
+upsertMeta("deploy-verified", __BUILD_TIMESTAMP__)
 
 // Import DM Sans font weights
 import "@fontsource/dm-sans/400.css";

@@ -1,5 +1,12 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { normalizeOAuthRedirectUrl } from "../../auth/authHost";
 import { getOAuthRedirectUrl } from "../../utils/platform";
+
+export interface ClientEnvConfig {
+  VITE_SUPABASE_URL?: string;
+  VITE_SUPABASE_ANON_KEY?: string;
+  VITE_SUPABASE_REDIRECT_URL?: string;
+}
 
 interface Config {
   SUPABASE_URL: string;
@@ -17,29 +24,45 @@ function readClientEnv(value: string | undefined, name: string, fallback = ""): 
   return fallback;
 }
 
-const config: Config = {
-  SUPABASE_URL: readClientEnv(import.meta.env.VITE_SUPABASE_URL, "VITE_SUPABASE_URL"),
-  SUPABASE_ANON_KEY: readClientEnv(import.meta.env.VITE_SUPABASE_ANON_KEY, "VITE_SUPABASE_ANON_KEY"),
-  // Use platform-aware redirect URL for iOS Universal Links support
-  redirect_url:
-    import.meta.env.VITE_SUPABASE_REDIRECT_URL || getOAuthRedirectUrl(),
-};
+export function buildClientConfig(
+  env: ClientEnvConfig,
+  fallbackRedirectUrl = getOAuthRedirectUrl()
+): Omit<Config, "supabaseClient"> {
+  return {
+    SUPABASE_URL: readClientEnv(env.VITE_SUPABASE_URL, "VITE_SUPABASE_URL"),
+    SUPABASE_ANON_KEY: readClientEnv(
+      env.VITE_SUPABASE_ANON_KEY,
+      "VITE_SUPABASE_ANON_KEY"
+    ),
+    redirect_url: normalizeOAuthRedirectUrl(
+      env.VITE_SUPABASE_REDIRECT_URL,
+      fallbackRedirectUrl
+    ),
+  };
+}
 
-function createSupabaseClient() {
-  if (!config.SUPABASE_URL || !config.SUPABASE_ANON_KEY) {
+export function createSupabaseClient(
+  baseConfig: Pick<Config, "SUPABASE_URL" | "SUPABASE_ANON_KEY">
+): SupabaseClient | undefined {
+  if (!baseConfig.SUPABASE_URL || !baseConfig.SUPABASE_ANON_KEY) {
     return undefined;
   }
 
-  const supabase = createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY, {
-    auth: {
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: true,
-    },
-  });
+  const supabase = createClient(
+    baseConfig.SUPABASE_URL,
+    baseConfig.SUPABASE_ANON_KEY,
+    {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true,
+      },
+    }
+  );
   return supabase;
 }
 
-config.supabaseClient = createSupabaseClient();
+const config: Config = buildClientConfig(import.meta.env);
+config.supabaseClient = createSupabaseClient(config);
 
 export default config;

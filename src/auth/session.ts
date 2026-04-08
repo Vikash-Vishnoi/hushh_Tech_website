@@ -1,4 +1,8 @@
 import type { Session, SupabaseClient, User } from "@supabase/supabase-js";
+import {
+  resolveOAuthHost,
+  type OAuthHostResolution,
+} from "./authHost";
 import config from "../resources/config/config";
 import {
   DEFAULT_AUTH_REDIRECT,
@@ -18,6 +22,26 @@ export type AuthSessionReason =
   | "invalid_session";
 
 export type OAuthProvider = "google" | "apple";
+
+export type OAuthStartFailureReason =
+  | "missing_client"
+  | "unsupported_host"
+  | "provider_error"
+  | "missing_authorize_url";
+
+export type OAuthStartResult =
+  | {
+      ok: true;
+      provider: OAuthProvider;
+      redirectTo: string;
+    }
+  | {
+      ok: false;
+      provider: OAuthProvider;
+      reason: OAuthStartFailureReason;
+      message: string;
+      redirectTo?: string;
+    };
 
 export interface AuthSessionSnapshot {
   status: AuthSessionStatus;
@@ -52,17 +76,16 @@ export function clearLegacyAuthStorage() {
 
 export function buildOAuthRedirectTo(
   provider: OAuthProvider,
-  search: string = window.location.search
+  search: string = window.location.search,
+  callbackUrl: string = `${window.location.origin}/auth/callback`
 ) {
-  const baseRedirectUrl =
-    config.redirect_url || `${window.location.origin}/auth/callback`;
   const currentParams = new URLSearchParams(search);
   const rawRedirectPath = currentParams.get("redirect");
   const redirectPath = rawRedirectPath
     ? sanitizeInternalRedirect(rawRedirectPath, DEFAULT_AUTH_REDIRECT)
     : null;
 
-  let redirectTo = baseRedirectUrl;
+  let redirectTo = callbackUrl;
   if (redirectPath) {
     redirectTo = `${redirectTo}?redirect=${encodeURIComponent(redirectPath)}`;
   }
@@ -80,36 +103,86 @@ export function buildOAuthRedirectTo(
   };
 }
 
+function getOAuthHostResolution(): OAuthHostResolution {
+  return resolveOAuthHost(
+    window.location.pathname,
+    window.location.search,
+    config.redirect_url,
+    window.location.origin
+  );
+}
+
 export async function startUnifiedOAuth(
   provider: OAuthProvider,
   client: SupabaseClient | undefined = config.supabaseClient
-) {
+): Promise<OAuthStartResult> {
   try {
-    if (!client) {
-      console.error("[AuthSession] Supabase client is not initialized");
-      return false;
+    const hostResolution = getOAuthHostResolution();
+    if (!hostResolution.supported) {
+      return {
+        ok: false,
+        provider,
+        reason: "unsupported_host",
+        message: `Sign-in is only available on ${hostResolution.canonicalOrigin}.`,
+        redirectTo: hostResolution.canonicalEntryUrl,
+      };
     }
 
-    const options = buildOAuthRedirectTo(provider);
+    if (!client) {
+      return {
+        ok: false,
+        provider,
+        reason: "missing_client",
+        message:
+          "Authentication is not configured for this build. Missing Supabase client configuration.",
+      };
+    }
+
+    const options = buildOAuthRedirectTo(
+      provider,
+      window.location.search,
+      hostResolution.callbackUrl
+    );
     const { data, error } = await client.auth.signInWithOAuth({
       provider,
       options,
     });
 
     if (error) {
-      console.error(`[AuthSession] ${provider} OAuth start failed:`, error);
-      return false;
+      return {
+        ok: false,
+        provider,
+        reason: "provider_error",
+        message: error.message || `Unable to start ${provider} sign-in.`,
+      };
     }
 
     if (data?.url) {
       window.location.assign(data.url);
-      return true;
+      return {
+        ok: true,
+        provider,
+        redirectTo: data.url,
+      };
     }
 
-    return false;
+    return {
+      ok: false,
+      provider,
+      reason: "missing_authorize_url",
+      message: `Unable to start ${provider} sign-in. No authorization URL was returned.`,
+    };
   } catch (error) {
-    console.error(`[AuthSession] ${provider} OAuth start failed:`, error);
-    return false;
+    const message =
+      error instanceof Error
+        ? error.message
+        : `Unable to start ${provider} sign-in.`;
+    return {
+      ok: false,
+      provider,
+      reason: "provider_error",
+      message,
+    };
   }
 }
 
