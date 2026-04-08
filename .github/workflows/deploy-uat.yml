@@ -5,7 +5,7 @@ on:
 
 env:
   SMOKE_BASE_URL: https://uat.hushhtech.com
-  SHARED_SECRETS_PROJECT: hushone-app
+  SHARED_SECRETS_PROJECT: "53407187172"
   VITE_SUPABASE_REDIRECT_URL: https://uat.hushhtech.com/auth/callback
 
 jobs:
@@ -32,8 +32,15 @@ jobs:
       - name: Load web auth build env from Secret Manager
         shell: bash
         run: |
-          echo "VITE_SUPABASE_URL=$(gcloud secrets versions access latest --project=\"$SHARED_SECRETS_PROJECT\" --secret=\"SUPABASE_URL\")" >> "$GITHUB_ENV"
-          echo "VITE_SUPABASE_ANON_KEY=$(gcloud secrets versions access latest --project=\"$SHARED_SECRETS_PROJECT\" --secret=\"SUPABASE_ANON_KEY\")" >> "$GITHUB_ENV"
+          set -euo pipefail
+          supabase_url="$(gcloud secrets versions access latest --project="$SHARED_SECRETS_PROJECT" --secret="SUPABASE_URL")"
+          supabase_anon_key="$(gcloud secrets versions access latest --project="$SHARED_SECRETS_PROJECT" --secret="SUPABASE_ANON_KEY")"
+          if [ -z "$supabase_url" ] || [ -z "$supabase_anon_key" ]; then
+            echo "::error::Supabase web auth secrets are empty"
+            exit 1
+          fi
+          printf 'VITE_SUPABASE_URL=%s\n' "$supabase_url" >> "$GITHUB_ENV"
+          printf 'VITE_SUPABASE_ANON_KEY=%s\n' "$supabase_anon_key" >> "$GITHUB_ENV"
 
       # 3. Build Vite app in runner (FAST — no Docker needed)
       - name: Validate client auth env
