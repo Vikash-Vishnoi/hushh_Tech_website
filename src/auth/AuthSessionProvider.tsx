@@ -13,6 +13,7 @@ import {
   type AuthSessionSnapshot,
   type AuthSessionStatus,
   type OAuthProvider,
+  type OAuthStartResult,
   AUTH_EVENT_STORAGE_KEY,
   broadcastAuthEvent,
   clearLegacyAuthStorage,
@@ -24,7 +25,7 @@ import {
 } from "./session";
 
 interface AuthSessionContextValue extends AuthSessionSnapshot {
-  startOAuth: (provider: OAuthProvider) => Promise<boolean>;
+  startOAuth: (provider: OAuthProvider) => Promise<OAuthStartResult>;
   signOut: () => Promise<void>;
   revalidateSession: () => Promise<AuthSessionSnapshot>;
   handleAccountDeleted: () => Promise<void>;

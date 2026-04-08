@@ -29,9 +29,11 @@ site_url = "https://hushhtech.com"
 additional_redirect_urls = [
   "https://hushhtech.com/auth/callback",
   "https://hushhtech.com/auth/callback?redirect=/hushh-ai",
+  "https://hushhtech.com/**",
+  "https://uat.hushhtech.com/auth/callback",
+  "https://uat.hushhtech.com/**",
   "https://www.hushhtech.com/auth/callback",
   "https://www.hushhtech.com/auth/callback?redirect=/hushh-ai",
-  "https://hushhtech.com/**",
   "https://www.hushhtech.com/**",
   "hushh://auth/callback",
   "hushh://**",
