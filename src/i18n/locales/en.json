@@ -17,7 +17,7 @@
   },
   "deleteAccount": {
     "title": "Delete Account",
-    "warningMessage": "This action is permanent and cannot be undone. All your data will be permanently deleted from our systems.",
+    "warningMessage": "This action is permanent and cannot be undone. Your product data will be permanently deleted, and only a minimal de-identified payment audit may remain.",
     "willDelete": "This will permanently delete:",
     "deleteItem1": "Your account and profile information",
     "deleteItem2": "All your investor data and preferences",
@@ -28,7 +28,7 @@
     "confirmDelete": "Delete Account",
     "deleting": "Deleting...",
     "successTitle": "Account Deleted",
-    "successMessage": "Your account and all associated data have been permanently deleted.",
+    "successMessage": "Your account and product data have been permanently deleted. Only a minimal de-identified payment audit may remain.",
     "errorTitle": "Deletion Failed",
     "errorMessage": "Failed to delete your account. Please try again or contact support."
   },

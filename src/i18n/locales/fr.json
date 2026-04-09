@@ -17,7 +17,7 @@
   },
   "deleteAccount": {
     "title": "Supprimer le Compte",
-    "warningMessage": "Cette action est permanente et ne peut pas être annulée. Toutes vos données seront définitivement supprimées de nos systèmes.",
+    "warningMessage": "Cette action est permanente et irréversible. Vos données produit seront supprimées définitivement, et seul un audit de paiement minimal désidentifié pourra être conservé.",
     "willDelete": "Cela supprimera définitivement :",
     "deleteItem1": "Votre compte et informations de profil",
     "deleteItem2": "Toutes vos données et préférences d'investisseur",
@@ -28,7 +28,7 @@
     "confirmDelete": "Supprimer le Compte",
     "deleting": "Suppression...",
     "successTitle": "Compte Supprimé",
-    "successMessage": "Votre compte et toutes les données associées ont été définitivement supprimés.",
+    "successMessage": "Votre compte et vos données produit ont été définitivement supprimés. Seul un audit de paiement minimal désidentifié pourra être conservé.",
     "errorTitle": "Échec de la Suppression",
     "errorMessage": "Échec de la suppression de votre compte. Veuillez réessayer ou contacter le support."
   },

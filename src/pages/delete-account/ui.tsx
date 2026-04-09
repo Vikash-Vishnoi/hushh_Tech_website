@@ -11,68 +11,10 @@ import HushhTechFooter from "../../components/hushh-tech-footer/HushhTechFooter"
 import HushhTechCta, { HushhTechCtaVariant } from "../../components/hushh-tech-cta/HushhTechCta";
 import DeleteAccountModal from "../../components/DeleteAccountModal";
 import { Helmet } from "react-helmet";
+import { DELETE_ACCOUNT_ACCORDION_SECTIONS } from "./content";
 
 /* ── Playfair heading style ── */
 const playfair = { fontFamily: "'Playfair Display', serif" };
-
-/* ── Accordion section data ── */
-const ACCORDION_SECTIONS = [
-  {
-    id: "how-to",
-    icon: "delete_forever",
-    iconColor: "text-red-500",
-    title: "How to Delete Your Account",
-    subtitle: "Step-by-step process",
-    content: [
-      { step: "1", text: "Click the 'Permanently Delete Account' button above." },
-      { step: "2", text: "Type DELETE in the confirmation field." },
-      { step: "3", text: "Confirm your decision — this cannot be undone." },
-      { step: "4", text: "Your account and all data will be permanently removed." },
-    ],
-  },
-  {
-    id: "data-deleted",
-    icon: "folder_off",
-    iconColor: "text-hushh-blue",
-    title: "Data That Will Be Permanently Deleted",
-    subtitle: "Profile, history & preferences",
-    content: [
-      { step: "•", text: "Account credentials & profile information" },
-      { step: "•", text: "Investor profile & preferences" },
-      { step: "•", text: "Onboarding data & responses" },
-      { step: "•", text: "KYC verification data" },
-      { step: "•", text: "Chat history with AI assistant" },
-      { step: "•", text: "Uploaded documents & files" },
-      { step: "•", text: "Privacy settings & data vault" },
-    ],
-  },
-  {
-    id: "retention",
-    icon: "history_toggle_off",
-    iconColor: "text-ios-yellow",
-    title: "Data Retention Policy",
-    subtitle: "What we keep for compliance",
-    content: [
-      { step: "→", text: "All personal data is deleted immediately upon confirmation." },
-      { step: "→", text: "Encrypted backups are purged within 30 days." },
-      { step: "→", text: "Transaction records retained for 7 years per financial regulations." },
-      { step: "→", text: "Anonymized aggregated analytics that cannot identify you may be kept." },
-    ],
-  },
-  {
-    id: "notice",
-    icon: "warning",
-    iconColor: "text-ios-red",
-    title: "Important Notice",
-    subtitle: "Read before proceeding",
-    content: [
-      { step: "!", text: "This action is permanent and cannot be undone." },
-      { step: "!", text: "You will lose access to all Hushh services immediately." },
-      { step: "!", text: "Any active investments or pending transactions should be resolved first." },
-      { step: "!", text: "Contact support@hushh.ai if you need help before deleting." },
-    ],
-  },
-];
 
 const DeleteAccountPage: React.FC = () => {
   const {
@@ -168,7 +110,7 @@ const DeleteAccountPage: React.FC = () => {
 
             {/* ── Accordion Sections ── */}
             <div className="space-y-0">
-              {ACCORDION_SECTIONS.map((section) => {
+              {DELETE_ACCOUNT_ACCORDION_SECTIONS.map((section) => {
                 const isExpanded = expandedId === section.id;
 
                 return (

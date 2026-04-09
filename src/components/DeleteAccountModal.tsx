@@ -29,7 +29,7 @@ const DeleteAccountModal = ({
   const isDeleteEnabled = confirmText.toUpperCase() === "DELETE";
 
   // =====================================================
-  // Backend logic — UNCHANGED
+  // Backend logic
   // =====================================================
   const handleDeleteAccount = async () => {
     if (!isDeleteEnabled || !config.supabaseClient) return;
@@ -83,14 +83,14 @@ const DeleteAccountModal = ({
         }
       );
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
 
-      if (!response.ok) {
+      if (!response.ok || data?.success !== true) {
         console.error("[DeleteAccount] Edge function error:", data);
-        throw new Error(data.error || "Failed to delete account");
+        throw new Error(data?.error || "Failed to delete account");
       }
 
-      console.log("[DeleteAccount] Account deleted successfully");
+      console.log("[DeleteAccount] Account deleted successfully", data);
       await handleAccountDeleted();
 
       toast({
@@ -163,8 +163,9 @@ const DeleteAccountModal = ({
               are you sure?
             </h2>
             <p className="text-gray-500 text-[0.85rem] leading-relaxed font-normal lowercase max-w-[90%] mx-auto">
-              this action is permanent and cannot be undone. all your data,
-              investment info, and services will be removed.
+              this permanently deletes your profile, onboarding, plaid,
+              chats, nda, kyc, and stored files. only a minimal de-identified
+              payment audit may remain for compliance.
             </p>
           </div>
 
