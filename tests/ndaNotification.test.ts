@@ -106,8 +106,7 @@ describeIntegration('NDA Notification Edge Function', () => {
       // Note: This test sends a real email, so we check for success
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
-      expect(data.recipients).toContain('manish@hushh.ai');
-      expect(data.recipients).toContain('ankit@hushh.ai');
+      expect(data.message).toBe('NDA notification sent');
       expect(data.messageId).toBeDefined();
     });
 
@@ -149,8 +148,7 @@ describeIntegration('NDA Notification Edge Function', () => {
       
       expect(data).toHaveProperty('success');
       expect(data).toHaveProperty('message');
-      expect(data).toHaveProperty('recipients');
-      expect(Array.isArray(data.recipients)).toBe(true);
+      expect(data).toHaveProperty('messageId');
     });
 
     it('should return error structure on validation failure', async () => {

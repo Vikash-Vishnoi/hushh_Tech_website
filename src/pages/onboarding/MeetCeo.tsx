@@ -8,7 +8,7 @@ import HushhTechCta, { HushhTechCtaVariant } from '../../components/hushh-tech-c
 // Types
 interface TimeSlot { startTime: string; endTime: string; available: boolean; }
 interface DayAvailability { date: string; slots: TimeSlot[]; }
-interface CalendarData { ceo: { name: string; email: string }; timezone: string; meetingDuration: number; availability: DayAvailability[]; }
+interface CalendarData { ceo: { name: string; email?: string }; timezone: string; meetingDuration: number; availability: DayAvailability[]; }
 type PaymentState = 'loading' | 'not_paid' | 'verifying' | 'paid' | 'booked';
 const VALID_COUPON = 'ILOVEHUSHH';
 

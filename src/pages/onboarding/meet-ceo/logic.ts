@@ -8,7 +8,7 @@ import { buildLoginRedirectPath } from '../../../auth/routePolicy';
 // Types
 export interface TimeSlot { startTime: string; endTime: string; available: boolean; }
 export interface DayAvailability { date: string; slots: TimeSlot[]; }
-export interface CalendarData { ceo: { name: string; email: string }; timezone: string; meetingDuration: number; availability: DayAvailability[]; }
+export interface CalendarData { ceo: { name: string; email?: string }; timezone: string; meetingDuration: number; availability: DayAvailability[]; }
 export type PaymentState = 'loading' | 'not_paid' | 'verifying' | 'paid' | 'booked';
 export const VALID_COUPON = 'ILOVEHUSHH';
 

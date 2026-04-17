@@ -293,8 +293,9 @@ serve(async (req) => {
     );
 
     if (!result.success) {
+      console.error("NDA notification email send failed:", result.error);
       return new Response(
-        JSON.stringify({ error: result.error }),
+        JSON.stringify({ error: "Failed to send NDA notification" }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -304,9 +305,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        message: `NDA notification sent to ${NDA_NOTIFICATION_RECIPIENTS.join(', ')}`,
-        recipients: NDA_NOTIFICATION_RECIPIENTS,
-        messageId: result.messageId
+        message: "NDA notification sent",
+        messageId: result.messageId,
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -314,9 +314,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('NDA notification error:', error);
     return new Response(
-      JSON.stringify({
-        error: error instanceof Error ? error.message : 'Failed to send NDA notification'
-      }),
+      JSON.stringify({ error: 'Failed to send NDA notification' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

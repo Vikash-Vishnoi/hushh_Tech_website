@@ -309,7 +309,7 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({
           success: true,
-          ceo: { name: CEO_NAME, email: CEO_EMAIL },
+          ceo: { name: CEO_NAME },
           timezone: TIMEZONE,
           meetingDuration: MEETING_DURATION_MINUTES,
           availability: availableSlots,
