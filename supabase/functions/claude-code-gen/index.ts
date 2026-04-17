@@ -8,12 +8,7 @@
  */
 
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+import { corsGuard, getCorsHeaders } from "../_shared/cors.ts";
 
 const GCP_PROJECT_ID = "hushone-app";
 const GCP_REGION = "us-east5";
@@ -194,9 +189,16 @@ async function callClaude(
 }
 
 serve(async (req) => {
+  const corsFailure = corsGuard(req, { label: "claude-code-gen" });
+  if (corsFailure) return corsFailure;
+
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response("ok", {
+      headers: getCorsHeaders(req, { allowMethods: "POST, OPTIONS" }),
+    });
   }
+
+  const corsHeaders = getCorsHeaders(req, { allowMethods: "POST, OPTIONS" });
 
   try {
     const { prompt, language = "typescript", mode = "generate" } = await req.json();

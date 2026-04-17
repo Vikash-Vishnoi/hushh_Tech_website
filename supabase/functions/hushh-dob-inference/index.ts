@@ -3,7 +3,7 @@
 // Infers Date of Birth using name, address, and public records
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { corsHeaders } from "../_shared/cors.ts";
+import { corsGuard, getCorsHeaders } from "../_shared/cors.ts";
 
 // Vertex AI Configuration - Using gemini-3-flash-preview for FASTER response
 const PROJECT_ID = Deno.env.get("GCP_PROJECT_ID") || "hushone-app";
@@ -493,6 +493,11 @@ Now search for "${name}" with email "${email || 'not provided'}" in "${location}
 
 // HTTP Handler
 serve(async (req: Request) => {
+  const corsFailure = corsGuard(req, { label: "hushh-dob-inference" });
+  if (corsFailure) return corsFailure;
+
+  const corsHeaders = getCorsHeaders(req, { allowMethods: "POST, OPTIONS" });
+
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });

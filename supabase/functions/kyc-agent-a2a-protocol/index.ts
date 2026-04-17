@@ -23,13 +23,7 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
-
-// CORS Headers
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-};
+import { corsGuard, getCorsHeaders } from '../_shared/cors.ts';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -1272,10 +1266,17 @@ const getAgentCard = (): AgentCard => ({
 // ============================================================================
 
 serve(async (req: Request) => {
+  const corsFailure = corsGuard(req, { label: 'kyc-agent-a2a-protocol' });
+  if (corsFailure) return corsFailure;
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', {
+      headers: getCorsHeaders(req, { allowMethods: 'GET, POST, OPTIONS' }),
+    });
   }
+
+  const corsHeaders = getCorsHeaders(req, { allowMethods: 'GET, POST, OPTIONS' });
 
   try {
     const url = new URL(req.url);

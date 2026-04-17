@@ -19,13 +19,7 @@ import {
   saveStreamState,
   clearStreamState,
 } from './supabase.ts';
-
-// CORS headers
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+import { corsGuard, getCorsHeaders } from '../_shared/cors.ts';
 
 // GCP Configuration
 const GCP_PROJECT = 'hushone-app';
@@ -100,10 +94,17 @@ interface RequestBody {
 }
 
 serve(async (req: Request) => {
+  const corsFailure = corsGuard(req, { label: 'hushh-ai-chat' });
+  if (corsFailure) return corsFailure;
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', {
+      headers: getCorsHeaders(req, { allowMethods: 'GET, POST, OPTIONS' }),
+    });
   }
+
+  const corsHeaders = getCorsHeaders(req, { allowMethods: 'GET, POST, OPTIONS' });
 
   // GET request to list available models
   if (req.method === 'GET') {

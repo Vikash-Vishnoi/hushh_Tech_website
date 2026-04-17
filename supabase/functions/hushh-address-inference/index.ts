@@ -5,7 +5,7 @@
 // Target response time: 5-10 seconds
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { corsHeaders } from "../_shared/cors.ts";
+import { corsGuard, getCorsHeaders } from "../_shared/cors.ts";
 
 // Vertex AI Configuration
 const PROJECT_ID = Deno.env.get("GCP_PROJECT_ID") || "hushone-app";
@@ -557,6 +557,11 @@ Respond ONLY with valid JSON in this exact format:
 // HTTP HANDLER
 // =============================================================================
 serve(async (req: Request) => {
+  const corsFailure = corsGuard(req, { label: "hushh-address-inference" });
+  if (corsFailure) return corsFailure;
+
+  const corsHeaders = getCorsHeaders(req, { allowMethods: "POST, OPTIONS" });
+
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });

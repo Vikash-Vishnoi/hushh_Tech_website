@@ -7,14 +7,21 @@
  * 
  * SANDBOX ONLY — will fail in production.
  */
-import { corsHeaders } from '../_shared/cors.ts';
+import { corsGuard, getCorsHeaders } from '../_shared/cors.ts';
 import { getPlaidConfig } from '../_shared/plaid.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 Deno.serve(async (req) => {
+  const corsFailure = corsGuard(req, { label: 'sandbox-create-test-item' });
+  if (corsFailure) return corsFailure;
+
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', {
+      headers: getCorsHeaders(req, { allowMethods: 'POST, OPTIONS' }),
+    });
   }
+
+  const corsHeaders = getCorsHeaders(req, { allowMethods: 'POST, OPTIONS' });
 
   try {
     const body = await req.json();

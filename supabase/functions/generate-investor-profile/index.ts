@@ -4,13 +4,7 @@
 
 import OpenAI from "npm:openai@4.72.0";
 import { createClient } from "jsr:@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*", // tighten to https://www.hushhtech.com later if needed
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+import { corsGuard, getCorsHeaders } from "../_shared/cors.ts";
 
 const SYSTEM_PROMPT = `You are an assistant that PRE-FILLS an INVESTOR PROFILE from minimal information.
 
@@ -118,10 +112,18 @@ const PROFILE_SCHEMA = {
 };
 
 Deno.serve(async (req: Request) => {
+  const corsFailure = corsGuard(req, { label: "generate-investor-profile" });
+  if (corsFailure) return corsFailure;
+
   // CORS preflight
   if (req.method === "OPTIONS") {
-    return new Response("ok", { status: 200, headers: corsHeaders });
+    return new Response("ok", {
+      status: 200,
+      headers: getCorsHeaders(req, { allowMethods: "POST, OPTIONS" }),
+    });
   }
+
+  const corsHeaders = getCorsHeaders(req, { allowMethods: "POST, OPTIONS" });
 
   if (req.method !== "POST") {
     return new Response(

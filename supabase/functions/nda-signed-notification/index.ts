@@ -3,15 +3,11 @@
 // Uses Gmail API with Service Account (Domain-Wide Delegation)
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { corsGuard, getCorsHeaders } from "../_shared/cors.ts";
 import { collectInlineAssets } from "../_shared/emailInlineAssets.ts";
 import { base64urlEncode, createMixedEmailMessage, createRelatedEmailMessage } from "../_shared/emailMime.ts";
 import { buildNDANotificationHtml, NDA_INLINE_ASSET_KEYS } from "./template.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
 
 // Recipients for NDA notifications
 const NDA_NOTIFICATION_RECIPIENTS = [
@@ -227,10 +223,17 @@ async function sendGmailEmail(
 }
 
 serve(async (req) => {
+  const corsFailure = corsGuard(req, { label: "nda-signed-notification" });
+  if (corsFailure) return corsFailure;
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', {
+      headers: getCorsHeaders(req, { allowMethods: "POST, OPTIONS" }),
+    });
   }
+
+  const corsHeaders = getCorsHeaders(req, { allowMethods: "POST, OPTIONS" });
 
   try {
     const payload: NDANotificationPayload = await req.json();
@@ -299,8 +302,8 @@ serve(async (req) => {
     console.log(`NDA notification sent for: ${signerName} (${signerEmail})`);
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
+      JSON.stringify({
+        success: true,
         message: `NDA notification sent to ${NDA_NOTIFICATION_RECIPIENTS.join(', ')}`,
         recipients: NDA_NOTIFICATION_RECIPIENTS,
         messageId: result.messageId
@@ -311,8 +314,8 @@ serve(async (req) => {
   } catch (error) {
     console.error('NDA notification error:', error);
     return new Response(
-      JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'Failed to send NDA notification' 
+      JSON.stringify({
+        error: error instanceof Error ? error.message : 'Failed to send NDA notification'
       }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

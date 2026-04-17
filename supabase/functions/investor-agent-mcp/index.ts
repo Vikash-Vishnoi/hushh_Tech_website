@@ -5,13 +5,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
 import { tools, executeTool } from './tools.ts';
 import { callLLM } from './llm.ts';
-
-// Public chat endpoint - no authentication required
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+import { corsGuard, getCorsHeaders } from '../_shared/cors.ts';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -22,10 +16,17 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 // ============================================================================
 
 serve(async (req: Request) => {
+  const corsFailure = corsGuard(req, { label: 'investor-agent-mcp' });
+  if (corsFailure) return corsFailure;
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', {
+      headers: getCorsHeaders(req, { allowMethods: 'GET, POST, OPTIONS' }),
+    });
   }
+
+  const corsHeaders = getCorsHeaders(req, { allowMethods: 'GET, POST, OPTIONS' });
 
   try {
     const url = new URL(req.url);
@@ -41,22 +42,22 @@ serve(async (req: Request) => {
 
     // MCP Protocol Endpoint
     if (pathname.endsWith('/mcp')) {
-      return await handleMCP(req, url);
+      return await handleMCP(req, url, corsHeaders);
     }
 
     // Chat Endpoint (public or private)
     if (pathname.endsWith('/chat')) {
-      return await handleChat(req, url);
+      return await handleChat(req, url, corsHeaders);
     }
 
     // A2A Protocol - AgentCard
     if (pathname.endsWith('/a2a/agent-card.json')) {
-      return await handleAgentCard(req, url);
+      return await handleAgentCard(req, url, corsHeaders);
     }
 
     // A2A Protocol - JSON-RPC
     if (pathname.endsWith('/a2a/rpc')) {
-      return await handleA2ARPC(req, url);
+      return await handleA2ARPC(req, url, corsHeaders);
     }
 
     return new Response(
@@ -77,7 +78,7 @@ serve(async (req: Request) => {
 // MCP PROTOCOL HANDLER
 // ============================================================================
 
-async function handleMCP(req: Request, url: URL) {
+async function handleMCP(req: Request, url: URL, corsHeaders: Record<string, string>) {
   const slug = url.searchParams.get('slug');
   if (!slug) {
     return new Response(
@@ -163,7 +164,7 @@ async function handleMCP(req: Request, url: URL) {
 // CHAT ENDPOINT
 // ============================================================================
 
-async function handleChat(req: Request, url: URL) {
+async function handleChat(req: Request, url: URL, corsHeaders: Record<string, string>) {
   if (req.method !== 'POST') {
     return new Response(
       JSON.stringify({ error: 'Method not allowed' }),
@@ -303,7 +304,7 @@ async function handleChat(req: Request, url: URL) {
 // A2A PROTOCOL - AgentCard
 // ============================================================================
 
-async function handleAgentCard(req: Request, url: URL) {
+async function handleAgentCard(req: Request, url: URL, corsHeaders: Record<string, string>) {
   const slug = url.searchParams.get('slug');
   if (!slug) {
     return new Response(
@@ -356,7 +357,7 @@ async function handleAgentCard(req: Request, url: URL) {
 // A2A PROTOCOL - JSON-RPC
 // ============================================================================
 
-async function handleA2ARPC(req: Request, url: URL) {
+async function handleA2ARPC(req: Request, url: URL, corsHeaders: Record<string, string>) {
   if (req.method !== 'POST') {
     return new Response(
       JSON.stringify({ error: 'Method not allowed' }),

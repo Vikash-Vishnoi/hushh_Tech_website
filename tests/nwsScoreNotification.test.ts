@@ -100,7 +100,7 @@ describeIntegration('NWS Score Notification Edge Function', () => {
 
       // NWS function returns 204 for OPTIONS
       expect([200, 204]).toContain(response.status);
-      expect(response.headers.get('access-control-allow-origin')).toBe('*');
+      expect(response.headers.get('access-control-allow-origin')).toBe('https://hushh.ai');
     });
   });
 

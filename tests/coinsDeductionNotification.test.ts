@@ -76,7 +76,7 @@ describeIntegration('Coins Deduction Notification Edge Function', () => {
       });
 
       expect(response.status).toBe(200);
-      expect(response.headers.get('access-control-allow-origin')).toBe('*');
+      expect(response.headers.get('access-control-allow-origin')).toBe('https://hushh.ai');
     });
   });
 

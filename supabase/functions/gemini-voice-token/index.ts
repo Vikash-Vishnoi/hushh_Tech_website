@@ -8,13 +8,7 @@
  */
 
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
-
-// CORS headers
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+import { corsGuard, getCorsHeaders } from "../_shared/cors.ts";
 
 // Rotate through multiple API keys for high availability
 const getApiKey = (): string => {
@@ -51,10 +45,17 @@ Keep responses concise for voice conversations.`,
 };
 
 serve(async (req) => {
+  const corsFailure = corsGuard(req, { label: "gemini-voice-token" });
+  if (corsFailure) return corsFailure;
+
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response("ok", {
+      headers: getCorsHeaders(req, { allowMethods: "POST, OPTIONS" }),
+    });
   }
+
+  const corsHeaders = getCorsHeaders(req, { allowMethods: "POST, OPTIONS" });
 
   try {
     // Parse request body

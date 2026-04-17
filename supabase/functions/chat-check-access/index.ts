@@ -3,18 +3,20 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+import { corsGuard, getCorsHeaders } from "../_shared/cors.ts";
 
 serve(async (req) => {
+  const corsFailure = corsGuard(req, { label: "chat-check-access" });
+  if (corsFailure) return corsFailure;
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', {
+      headers: getCorsHeaders(req, { allowMethods: "POST, OPTIONS" }),
+    });
   }
+
+  const corsHeaders = getCorsHeaders(req, { allowMethods: "POST, OPTIONS" });
 
   try {
     const { visitorId, slug } = await req.json();

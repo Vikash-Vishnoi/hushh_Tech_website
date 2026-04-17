@@ -1,19 +1,26 @@
 // get-identity — Fetch account owner identity data from Plaid
 // Returns: name, email, phone, address from the bank
-import { corsHeaders } from '../_shared/cors.ts';
+import { corsGuard, getCorsHeaders, withCors } from '../_shared/cors.ts';
 import { getPlaidConfig } from '../_shared/plaid.ts';
 import { authenticateEdgeRequest } from '../_shared/security.ts';
 
 Deno.serve(async (req) => {
+  const corsFailure = corsGuard(req, { label: 'get-identity' });
+  if (corsFailure) return corsFailure;
+
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', {
+      headers: getCorsHeaders(req, { allowMethods: 'POST, OPTIONS' }),
+    });
   }
+
+  const corsHeaders = getCorsHeaders(req, { allowMethods: 'POST, OPTIONS' });
 
   try {
     const authFailure = await authenticateEdgeRequest(req, {
       label: 'get-identity',
     });
-    if (authFailure) return authFailure;
+    if (authFailure) return withCors(req, authFailure, { allowMethods: 'POST, OPTIONS' });
 
     const body = await req.json();
     const accessToken = body.accessToken || body.access_token;

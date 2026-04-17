@@ -3,6 +3,8 @@
  * This runs server-side to avoid CORS issues and keep API keys secure
  */
 
+import { corsGuard, setCorsHeaders } from './shared/cors.js';
+
 const SYSTEM_PROMPT = `You are an assistant that PRE-FILLS an INVESTOR PROFILE from minimal information.
 
 You are given:
@@ -100,14 +102,16 @@ const PROFILE_SCHEMA = {
 };
 
 export default async function handler(req, res) {
-  // Set CORS headers
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization'
-  );
+  const corsOptions = {
+    allowMethods: 'GET,OPTIONS,PATCH,DELETE,POST,PUT',
+    allowHeaders: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization',
+  };
+
+  if (corsGuard(req, res, { label: 'generate-investor-profile', options: corsOptions })) {
+    return;
+  }
+
+  setCorsHeaders(req, res, corsOptions);
 
   // Handle preflight request
   if (req.method === 'OPTIONS') {

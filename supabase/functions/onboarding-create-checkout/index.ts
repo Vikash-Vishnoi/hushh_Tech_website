@@ -4,21 +4,21 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import Stripe from "https://esm.sh/stripe@14.5.0?target=deno";
 import { getTrustedOrigin } from "../_shared/security.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+import { corsGuard, getCorsHeaders } from "../_shared/cors.ts";
 
 Deno.serve(async (req) => {
+  const corsFailure = corsGuard(req, { label: "onboarding-create-checkout" });
+  if (corsFailure) return corsFailure;
+
   // Handle CORS preflight - MUST return 200 with headers
   if (req.method === 'OPTIONS') {
     return new Response('ok', { 
       status: 200,
-      headers: corsHeaders 
+      headers: getCorsHeaders(req, { allowMethods: "POST, OPTIONS" })
     });
   }
+
+  const corsHeaders = getCorsHeaders(req, { allowMethods: "POST, OPTIONS" });
 
   try {
     // Get authorization token
