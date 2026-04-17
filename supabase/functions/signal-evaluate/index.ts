@@ -1,19 +1,26 @@
 // signal-evaluate — Evaluate ACH transaction return risk via Plaid Signal
 // Returns: risk scores (1-99), core attributes, ruleset result
-import { corsHeaders } from '../_shared/cors.ts';
+import { corsGuard, getCorsHeaders, withCors } from '../_shared/cors.ts';
 import { getPlaidConfig } from '../_shared/plaid.ts';
 import { authenticateEdgeRequest } from '../_shared/security.ts';
 
 Deno.serve(async (req) => {
+  const corsFailure = corsGuard(req, { label: 'signal-evaluate' });
+  if (corsFailure) return corsFailure;
+
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', {
+      headers: getCorsHeaders(req, { allowMethods: 'POST, OPTIONS' }),
+    });
   }
+
+  const corsHeaders = getCorsHeaders(req, { allowMethods: 'POST, OPTIONS' });
 
   try {
     const authFailure = await authenticateEdgeRequest(req, {
       label: 'signal-evaluate',
     });
-    if (authFailure) return authFailure;
+    if (authFailure) return withCors(req, authFailure, { allowMethods: 'POST, OPTIONS' });
 
     const body = await req.json();
     const accessToken = body.accessToken || body.access_token;

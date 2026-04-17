@@ -1,12 +1,19 @@
 // exchange-public-token — Exchange Plaid public token for access token
-import { corsHeaders } from '../_shared/cors.ts';
+import { corsGuard, getCorsHeaders, withCors } from '../_shared/cors.ts';
 import { getPlaidConfig } from '../_shared/plaid.ts';
 import { authenticateEdgeRequest } from '../_shared/security.ts';
 
 Deno.serve(async (req) => {
+  const corsFailure = corsGuard(req, { label: 'exchange-public-token' });
+  if (corsFailure) return corsFailure;
+
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', {
+      headers: getCorsHeaders(req, { allowMethods: 'POST, OPTIONS' }),
+    });
   }
+
+  const corsHeaders = getCorsHeaders(req, { allowMethods: 'POST, OPTIONS' });
 
   try {
     const body = await req.json();
@@ -17,7 +24,7 @@ Deno.serve(async (req) => {
       label: 'exchange-public-token',
       expectedUserId: userId || null,
     });
-    if (authFailure) return authFailure;
+    if (authFailure) return withCors(req, authFailure, { allowMethods: 'POST, OPTIONS' });
 
     if (!publicToken) {
       return new Response(

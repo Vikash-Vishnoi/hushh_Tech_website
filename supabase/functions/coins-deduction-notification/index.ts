@@ -1,18 +1,15 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { corsGuard, getCorsHeaders } from "../_shared/cors.ts";
 import { collectInlineAssets } from "../_shared/emailInlineAssets.ts";
 import { base64urlEncode, createRelatedEmailMessage } from "../_shared/emailMime.ts";
 import { buildCoinsDeductionEmailHtml, COINS_DEDUCTION_INLINE_ASSET_KEYS } from "./template.ts";
+
 
 /**
  * Coins Deduction Notification — Sends email when coins are used for meeting booking
  * Uses Gmail API with Service Account (Domain-Wide Delegation)
  * Same pattern as nda-signed-notification
  */
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
 
 // ─── Gmail API Helpers ───
 
@@ -102,7 +99,16 @@ async function sendGmailEmail(
 // ─── Main Handler ───
 
 serve(async (req: Request) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  const corsFailure = corsGuard(req, { label: "coins-deduction-notification" });
+  if (corsFailure) return corsFailure;
+
+  if (req.method === "OPTIONS") {
+    return new Response("ok", {
+      headers: getCorsHeaders(req, { allowMethods: "POST, OPTIONS" }),
+    });
+  }
+
+  const corsHeaders = getCorsHeaders(req, { allowMethods: "POST, OPTIONS" });
 
   try {
     const { recipientEmail, recipientName, coinsDeducted, meetingDate, meetingTime } = await req.json();

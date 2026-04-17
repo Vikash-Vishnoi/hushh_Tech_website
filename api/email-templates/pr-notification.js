@@ -11,11 +11,19 @@
  * Updated: Dec 26, 2025
  */
 
+import { corsGuard, setCorsHeaders } from '../shared/cors.js';
+
 export default async function handler(req, res) {
-  // CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  const corsOptions = {
+    allowMethods: 'POST, OPTIONS',
+    allowHeaders: 'Content-Type',
+  };
+
+  if (corsGuard(req, res, { label: 'email-templates/pr-notification', options: corsOptions })) {
+    return;
+  }
+
+  setCorsHeaders(req, res, corsOptions);
 
   // Handle preflight
   if (req.method === 'OPTIONS') {

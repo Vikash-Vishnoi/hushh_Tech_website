@@ -1,11 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-// CORS headers for browser requests
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-};
+import { corsGuard, getCorsHeaders } from "../_shared/cors.ts";
 
 // Stock symbols to fetch - the hushh 27 alpha bets watchlist
 const STOCK_SYMBOLS = [
@@ -103,10 +97,17 @@ async function fetchAllQuotes(apiKey: string): Promise<StockQuote[]> {
 }
 
 serve(async (req) => {
+  const corsFailure = corsGuard(req, { label: "stock-quotes" });
+  if (corsFailure) return corsFailure;
+
   // Handle CORS preflight request
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response("ok", {
+      headers: getCorsHeaders(req, { allowMethods: "GET, POST, OPTIONS" }),
+    });
   }
+
+  const corsHeaders = getCorsHeaders(req, { allowMethods: "GET, POST, OPTIONS" });
 
   try {
     // Get Finnhub API key from environment (secret)

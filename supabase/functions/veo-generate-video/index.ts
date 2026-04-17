@@ -3,7 +3,7 @@
  * Proxies video generation requests to Vertex AI using GCP paid billing
  */
 
-import { corsHeaders } from '../_shared/cors.ts';
+import { corsGuard, getCorsHeaders } from '../_shared/cors.ts';
 
 const PROJECT_ID = Deno.env.get('GCP_PROJECT_ID') || 'hushone-app';
 const LOCATION = Deno.env.get('GCP_LOCATION') || 'us-central1';
@@ -172,10 +172,17 @@ async function pollOperation(
 }
 
 Deno.serve(async (req) => {
+  const corsFailure = corsGuard(req, { label: 'veo-generate-video' });
+  if (corsFailure) return corsFailure;
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', {
+      headers: getCorsHeaders(req, { allowMethods: 'POST, OPTIONS' }),
+    });
   }
+
+  const corsHeaders = getCorsHeaders(req, { allowMethods: 'POST, OPTIONS' });
 
   try {
     const body: VideoGenerationRequest = await req.json();

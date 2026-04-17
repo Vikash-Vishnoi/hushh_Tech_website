@@ -2,7 +2,7 @@
 // Uses Google Geocoding API (if configured) to convert lat/lng to full address components.
 // Falls back to OpenStreetMap Nominatim when Google is not configured or fails.
 
-import { corsHeaders } from '../_shared/cors.ts';
+import { corsGuard, getCorsHeaders } from '../_shared/cors.ts';
 
 // Country code to phone dial code mapping
 const COUNTRY_DIAL_CODES: Record<string, string> = {
@@ -245,6 +245,11 @@ const reverseGeocodeViaNominatim = async (
 };
 
 Deno.serve(async (req) => {
+  const corsFailure = corsGuard(req, { label: 'hushh-location-geocode' });
+  if (corsFailure) return corsFailure;
+
+  const corsHeaders = getCorsHeaders(req, { allowMethods: 'POST, OPTIONS' });
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });

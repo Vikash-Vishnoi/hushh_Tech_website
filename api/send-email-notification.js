@@ -3,13 +3,7 @@
 
 import nodemailer from 'nodemailer';
 import { createClient } from '@supabase/supabase-js';
-
-// CORS headers
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
+import { corsGuard, setCorsHeaders } from './shared/cors.js';
 
 function createSupabaseAdminClient() {
   const supabaseUrl = process.env.SUPABASE_URL?.trim();
@@ -52,6 +46,17 @@ async function resolvePublicProfileOwner(slug) {
 }
 
 export default async function handler(req, res) {
+  const corsOptions = {
+    allowMethods: 'POST, OPTIONS',
+    allowHeaders: 'Content-Type',
+  };
+
+  if (corsGuard(req, res, { label: 'send-email-notification', options: corsOptions })) {
+    return;
+  }
+
+  setCorsHeaders(req, res, corsOptions);
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return res.status(200).json({ ok: true });

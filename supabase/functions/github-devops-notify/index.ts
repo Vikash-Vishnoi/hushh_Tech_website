@@ -19,13 +19,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { sendGmailNotification } from "./gmail.ts";
-
-// CORS headers for preflight requests
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, X-Hub-Signature-256, X-GitHub-Event, X-GitHub-Delivery",
-};
+import { corsGuard, getCorsHeaders } from "../_shared/cors.ts";
 
 // Google Cloud Run API endpoint for email template
 const EMAIL_TEMPLATE_API = "https://email-template-api-53407187172.us-central1.run.app/pr-notification";
@@ -198,6 +192,14 @@ async function fetchEmailTemplate(prData: PRData): Promise<{ subject: string; ht
 }
 
 serve(async (req: Request) => {
+  const corsFailure = corsGuard(req, { label: "github-devops-notify" });
+  if (corsFailure) return corsFailure;
+
+  const corsHeaders = getCorsHeaders(req, {
+    allowMethods: "POST, OPTIONS",
+    allowHeaders: "Content-Type, X-Hub-Signature-256, X-GitHub-Event, X-GitHub-Delivery",
+  });
+
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, {

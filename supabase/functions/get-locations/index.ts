@@ -4,18 +4,20 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { Country, State, City } from 'npm:country-state-city@3.2.1';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
-};
+import { corsGuard, getCorsHeaders } from '../_shared/cors.ts';
 
 serve(async (req) => {
+  const corsFailure = corsGuard(req, { label: 'get-locations' });
+  if (corsFailure) return corsFailure;
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', {
+      headers: getCorsHeaders(req, { allowMethods: 'GET, OPTIONS' }),
+    });
   }
+
+  const corsHeaders = getCorsHeaders(req, { allowMethods: 'GET, OPTIONS' });
 
   try {
     const url = new URL(req.url);

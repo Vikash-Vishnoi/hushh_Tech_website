@@ -1,12 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-// Public chat endpoint - no authentication required
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+import { corsGuard, getCorsHeaders } from "../_shared/cors.ts";
 
 // ============================================================================
 // DATA MASKING UTILITIES (Protect contact info in free tier)
@@ -32,10 +26,17 @@ function maskPhone(phoneNumber: string, countryCode: string): string {
 }
 
 serve(async (req) => {
+  const corsFailure = corsGuard(req, { label: "investor-chat" });
+  if (corsFailure) return corsFailure;
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', {
+      headers: getCorsHeaders(req, { allowMethods: "POST, OPTIONS" }),
+    });
   }
+
+  const corsHeaders = getCorsHeaders(req, { allowMethods: "POST, OPTIONS" });
 
   try {
     const { slug, message, visitorId, history = [] } = await req.json();

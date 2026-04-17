@@ -8,6 +8,8 @@
  * @see https://ai.google.dev/gemini-api/docs/ephemeral-tokens
  */
 
+import { corsGuard, setCorsHeaders } from './shared/cors.js';
+
 // Rotate through multiple API keys
 const API_KEYS = [
   process.env.GEMINI_API_KEY,
@@ -28,10 +30,16 @@ function getNextKey() {
 }
 
 export default async function handler(req, res) {
-  // CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  const corsOptions = {
+    allowMethods: 'POST, OPTIONS',
+    allowHeaders: 'Content-Type',
+  };
+
+  if (corsGuard(req, res, { label: 'gemini-ephemeral-token', options: corsOptions })) {
+    return;
+  }
+
+  setCorsHeaders(req, res, corsOptions);
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();

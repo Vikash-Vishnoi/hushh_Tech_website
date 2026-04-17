@@ -8,11 +8,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-};
+import { corsGuard, getCorsHeaders } from "../_shared/cors.ts";
 
 // CEO Calendar Configuration
 const CEO_EMAIL = "manish@hushh.ai";
@@ -272,6 +268,13 @@ async function createMeetingEvent(
 }
 
 Deno.serve(async (req) => {
+  const corsFailure = corsGuard(req, { label: "ceo-calendar-booking" });
+  if (corsFailure) return corsFailure;
+
+  const corsHeaders = getCorsHeaders(req, {
+    allowMethods: "GET, POST, OPTIONS",
+  });
+
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });

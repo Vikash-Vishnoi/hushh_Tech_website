@@ -3,13 +3,7 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
-
-// CORS Headers
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-bank-id, x-api-key',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-};
+import { corsGuard, getCorsHeaders } from '../_shared/cors.ts';
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -51,10 +45,23 @@ interface KYCSummary {
 // ============================================================================
 
 serve(async (req: Request) => {
+  const corsFailure = corsGuard(req, { label: 'kyc-agent-a2a' });
+  if (corsFailure) return corsFailure;
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', {
+      headers: getCorsHeaders(req, {
+        allowMethods: 'GET, POST, OPTIONS',
+        allowHeaders: 'authorization, x-client-info, apikey, content-type, x-bank-id, x-api-key',
+      }),
+    });
   }
+
+  const corsHeaders = getCorsHeaders(req, {
+    allowMethods: 'GET, POST, OPTIONS',
+    allowHeaders: 'authorization, x-client-info, apikey, content-type, x-bank-id, x-api-key',
+  });
 
   try {
     const url = new URL(req.url);
@@ -75,27 +82,27 @@ serve(async (req: Request) => {
 
     // A2A Protocol - AgentCard Discovery
     if (pathname.endsWith('/a2a/agent-card.json') || pathname.endsWith('/agent-card.json')) {
-      return handleAgentCard();
+      return handleAgentCard(corsHeaders);
     }
 
     // A2A Protocol - JSON-RPC Endpoint
     if (pathname.endsWith('/a2a/rpc') || pathname.endsWith('/rpc')) {
-      return await handleA2ARPC(req);
+      return await handleA2ARPC(req, corsHeaders);
     }
 
     // REST API - Check KYC Status (simpler alternative to A2A)
     if (pathname.endsWith('/check') && req.method === 'POST') {
-      return await handleKYCCheck(req);
+      return await handleKYCCheck(req, corsHeaders);
     }
 
     // REST API - Get KYC Summary
     if (pathname.endsWith('/summary') && req.method === 'GET') {
-      return await handleKYCSummary(req, url);
+      return await handleKYCSummary(req, url, corsHeaders);
     }
 
     // List available policies
     if (pathname.endsWith('/policies') && req.method === 'GET') {
-      return await handleListPolicies();
+      return await handleListPolicies(corsHeaders);
     }
 
     return new Response(
@@ -126,7 +133,7 @@ serve(async (req: Request) => {
 // A2A PROTOCOL - AgentCard
 // ============================================================================
 
-function handleAgentCard() {
+function handleAgentCard(corsHeaders: Record<string, string>) {
   const agentCard = {
     name: 'Hushh KYC Agent',
     description: 'Privacy-preserving KYC verification agent. Allows banks and fintechs to verify user KYC status without accessing raw documents.',
@@ -180,7 +187,7 @@ function handleAgentCard() {
 // A2A PROTOCOL - JSON-RPC Handler
 // ============================================================================
 
-async function handleA2ARPC(req: Request) {
+async function handleA2ARPC(req: Request, corsHeaders: Record<string, string>) {
   if (req.method !== 'POST') {
     return new Response(
       JSON.stringify({ error: 'Method not allowed' }),
@@ -668,7 +675,7 @@ async function handleAgentChat(bankId: string, params: { message: string }) {
 // REST API: Direct KYC Check
 // ============================================================================
 
-async function handleKYCCheck(req: Request) {
+async function handleKYCCheck(req: Request, corsHeaders: Record<string, string>) {
   const bankId = req.headers.get('x-bank-id');
   
   if (!bankId) {
@@ -705,7 +712,7 @@ async function handleKYCCheck(req: Request) {
 // REST API: KYC Summary
 // ============================================================================
 
-async function handleKYCSummary(req: Request, url: URL) {
+async function handleKYCSummary(req: Request, url: URL, corsHeaders: Record<string, string>) {
   const userIdentifier = url.searchParams.get('user');
   
   if (!userIdentifier) {
@@ -727,7 +734,7 @@ async function handleKYCSummary(req: Request, url: URL) {
 // REST API: List Policies
 // ============================================================================
 
-async function handleListPolicies() {
+async function handleListPolicies(corsHeaders: Record<string, string>) {
   const { data: policies } = await supabase
     .from('kyc_policies')
     .select('bank_id, bank_name, bank_country, bank_type, required_attributes, max_kyc_age_days')

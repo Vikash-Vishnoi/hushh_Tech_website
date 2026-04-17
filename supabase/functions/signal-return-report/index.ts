@@ -1,11 +1,18 @@
 // signal-return-report — Report a return for an ACH transaction
-import { corsHeaders } from '../_shared/cors.ts';
+import { corsGuard, getCorsHeaders } from '../_shared/cors.ts';
 import { getPlaidConfig } from '../_shared/plaid.ts';
 
 Deno.serve(async (req) => {
+  const corsFailure = corsGuard(req, { label: 'signal-return-report' });
+  if (corsFailure) return corsFailure;
+
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', {
+      headers: getCorsHeaders(req, { allowMethods: 'POST, OPTIONS' }),
+    });
   }
+
+  const corsHeaders = getCorsHeaders(req, { allowMethods: 'POST, OPTIONS' });
 
   try {
     const body = await req.json();
