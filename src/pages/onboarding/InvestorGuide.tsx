@@ -197,7 +197,7 @@ export default function InvestorGuide() {
   const isPhaseActive = useCallback((index: number) => activePhases.has(index), [activePhases]);
 
   return (
-    <div className="bg-[#f6f7f8] min-h-screen font-['Manrope',sans-serif] antialiased text-[#111418] selection:bg-[#2b8cee]/20 selection:text-[#2b8cee]">
+    <div className="investor-guide-page bg-[#f6f7f8] min-h-screen font-['Manrope',sans-serif] antialiased text-[#111418] selection:bg-[#2b8cee]/20 selection:text-[#2b8cee]">
       <div className="onboarding-shell mx-auto flex h-full min-h-screen w-full max-w-[500px] flex-col bg-white shadow-xl relative overflow-hidden border-x border-slate-100">
         
         {/* Top App Bar */}
@@ -492,14 +492,6 @@ export default function InvestorGuide() {
           </div>
         </footer>
       </div>
-
-      {/* Add custom styles for hiding scrollbar */}
-      <style>{`
-        .overflow-x-auto::-webkit-scrollbar,
-        .overflow-y-auto::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
     </div>
   );
 }

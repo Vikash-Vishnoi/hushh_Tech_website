@@ -570,50 +570,6 @@ export default function Navbar() {
         onClose={onDeleteModalClose}
         onAccountDeleted={handleAccountDeleted}
       />
-
-      {/* Chip-based Ticker Styles */}
-      <style>{`
-        /* Ticker mask for fade edges */
-        .ticker-mask {
-          mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
-          -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
-        }
-        
-        /* Ticker animation */
-        .ticker-track {
-          display: flex;
-          animation: ticker-scroll 40s linear infinite;
-          width: max-content;
-        }
-        
-        @keyframes ticker-scroll {
-          0% {
-            transform: translateX(0);
-          }
-          100% {
-            transform: translateX(-50%);
-          }
-        }
-        
-        /* Pause animation on hover */
-        .ticker-mask:hover .ticker-track {
-          animation-play-state: paused;
-        }
-        
-        /* Scroll indicator bounce animation */
-        .scroll-indicator-arrow {
-          animation: bounce-down 1.5s ease-in-out infinite;
-        }
-        
-        @keyframes bounce-down {
-          0%, 100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(4px);
-          }
-        }
-      `}</style>
     </>
   );
 }

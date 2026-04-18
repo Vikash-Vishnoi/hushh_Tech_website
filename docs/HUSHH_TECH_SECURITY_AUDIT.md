@@ -86,8 +86,8 @@ Sensitive backend endpoints:
 | `SEC-008` | High | Verification | Stripe verification return URL accepted untrusted origin/path input | in_progress |
 | `SEC-009` | High | Onboarding | financial-step progression trusted `sessionStorage` flags | open |
 | `SEC-010` | High | Browser LLM | insecure browser-side OpenAI/Gemini fallbacks remain in source | open |
-| `SEC-011` | Medium | CORS | multiple endpoints still use wildcard CORS | open |
-| `SEC-012` | Medium | Headers | current CSP still allows `unsafe-inline` and `unsafe-eval` | open |
+| `SEC-011` | Medium | CORS | multiple endpoints used wildcard CORS | in_progress |
+| `SEC-012` | Medium | Headers | CSP hardened: removed script `unsafe-inline` and `unsafe-eval` | closed |
 
 ---
 
@@ -240,26 +240,37 @@ Sensitive backend endpoints:
 
 - **Severity:** Medium
 - **Evidence:**
-  - shared CORS headers use `Access-Control-Allow-Origin: *`
+  - multiple endpoints returned `Access-Control-Allow-Origin: *`
+  - endpoints now use allowlist-aware CORS helpers:
+    - `supabase/functions/_shared/cors.ts`
+    - `api/shared/cors.js`
 - **Exploit path:** permissive browser access broadens abuse surface
 - **Business impact:** easier cross-origin probing and misuse
 - **Recommended fix:**
-  - add origin allowlist with `observe` then `enforce`
+  - use origin allowlist with safe rollout (`observe` → `enforce`)
+  - configure allowed origins via env:
+    - `SECURITY_CORS_MODE`: `off` | `observe` | `enforce` (default: `observe`)
+    - `SECURITY_ALLOWED_ORIGINS`: comma-separated origin allowlist (optional)
+    - `PUBLIC_SITE_URL` / `SITE_URL`: primary site origin (implicit allowlist default)
 - **Validation:**
   - disallowed origins are logged first, then blocked when enabled
+  - responses include `Vary: Origin` to prevent cache poisoning across origins
 
-### `SEC-012` CSP still allows risky script execution modes
+### `SEC-012` CSP hardened; unsafe execution directives removed
 
 - **Severity:** Medium
 - **Evidence:**
-  - enforced CSP includes `unsafe-inline` and `unsafe-eval`
+  - enforced CSP in `server.js` and `vercel.json` removes `unsafe-eval`
+  - enforced CSP in `server.js` and `vercel.json` removes `unsafe-inline`
+  - CSP now includes `base-uri 'self'`, `object-src 'none'`, `frame-ancestors 'self'`, `form-action 'self'`, and `script-src-attr 'none'`
 - **Exploit path:** XSS impact is amplified
 - **Business impact:** larger blast radius for any injected script
 - **Recommended fix:**
-  - introduce stricter `Content-Security-Policy-Report-Only`
-  - phase out inline/eval dependencies before enforcement
+  - add CSP reporting endpoint + report-only policy for staged tightening
+  - continue reducing third-party source allowlists as integrations are retired
 - **Validation:**
-  - report-only telemetry shows no legitimate breakage before enforcement
+  - enforce-mode CSP no longer contains `unsafe-inline` or `unsafe-eval`
+  - CSP baseline directives (`object-src`, `base-uri`, `frame-ancestors`) are present in both hosting paths
 
 ---
 

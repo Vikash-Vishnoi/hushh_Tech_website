@@ -1,0 +1,5 @@
+/* Investor guide scrollbars */
+.investor-guide-page .overflow-x-auto::-webkit-scrollbar,
+.investor-guide-page .overflow-y-auto::-webkit-scrollbar {
+  display: none;
+}

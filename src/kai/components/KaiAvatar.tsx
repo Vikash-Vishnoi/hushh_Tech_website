@@ -102,21 +102,13 @@ const KaiAvatar: React.FC<KaiAvatarProps> = ({ volume, audioData, active }) => {
             active ? 'bg-emerald-500 shadow-lg shadow-emerald-500/50' : 'bg-gray-600'
           }`}
           style={{
-            animation: active ? 'pulse 1.5s ease-in-out infinite' : 'none',
+            animation: active ? 'kai-avatar-pulse 1.5s ease-in-out infinite' : 'none',
           }}
         />
         <span className="text-xs text-gray-500 uppercase tracking-wider font-mono">
           {active ? 'CONNECTED' : 'OFFLINE'}
         </span>
       </div>
-
-      {/* CSS Keyframes */}
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 0.3; transform: scale(1); }
-          50% { opacity: 0.6; transform: scale(1.05); }
-        }
-      `}</style>
     </div>
   );
 };

@@ -2,6 +2,12 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
+import './styles/csp/headerTicker.css'
+import './styles/csp/navbarTicker.css'
+import './styles/csp/kaiVoice.css'
+import './styles/csp/kaiIndia.css'
+import './styles/csp/onboardingModal.css'
+import './styles/csp/investorGuide.css'
 import config from './resources/config/config.ts'
 
 // Initialize i18n for multi-language support

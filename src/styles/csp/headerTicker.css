@@ -1,0 +1,25 @@
+/* Hushh Tech header ticker */
+.hushh-ticker-mask {
+  mask-image: linear-gradient(to right, transparent, black 4%, black 96%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 4%, black 96%, transparent);
+}
+
+.hushh-ticker-track {
+  display: flex;
+  animation: hushh-ticker-scroll 45s linear infinite;
+  width: max-content;
+}
+
+@keyframes hushh-ticker-scroll {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.hushh-ticker-mask:hover .hushh-ticker-track {
+  animation-play-state: paused;
+}

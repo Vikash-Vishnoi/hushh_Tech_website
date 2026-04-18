@@ -1,0 +1,42 @@
+/* Kai India animations */
+@keyframes kai-india-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(300%);
+  }
+}
+
+@keyframes shimmer-dark {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes kai-india-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-shimmer-dark {
+  background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 37%, #1a1a1a 63%);
+  background-size: 400% 100%;
+  animation: shimmer-dark 1.4s ease-in-out infinite;
+}
+
+.animate-fade-in {
+  animation: kai-india-fade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

@@ -94,7 +94,7 @@ const App: React.FC = () => {
         {/* Subtle progress line when refreshing */}
         {refreshing && (
            <div className="absolute bottom-0 left-0 w-full h-[1px] bg-neutral-800 overflow-hidden">
-             <div className="h-full bg-white/20 w-1/3 animate-[slide_1s_infinite_linear]"></div>
+             <div className="h-full bg-white/20 w-1/3 animate-[kai-india-slide_1s_infinite_linear]"></div>
            </div>
         )}
       </header>
@@ -233,30 +233,6 @@ const App: React.FC = () => {
           </p>
         </div>
       </footer>
-      
-      {/* Add inline style for the slide animation */}
-      <style>{`
-        @keyframes slide {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(300%); }
-        }
-        @keyframes shimmer-dark {
-          0% { background-position: -200% 0; }
-          100% { background-position: 200% 0; }
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-shimmer-dark {
-          background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 37%, #1a1a1a 63%);
-          background-size: 400% 100%;
-          animation: shimmer-dark 1.4s ease-in-out infinite;
-        }
-        .animate-fade-in {
-          animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-      `}</style>
     </div>
   );
 };
